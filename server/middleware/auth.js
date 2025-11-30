@@ -1,0 +1,37 @@
+const jwt = require('jsonwebtoken');
+
+function authenticateToken(req, res, next) {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  
+  if (!token) {
+    return res.status(401).json({ message: 'Access token required' });
+  }
+  
+  jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
+    if (err) {
+      return res.status(403).json({ message: 'Invalid or expired token' });
+    }
+    req.user = user;
+    req.salonId = user.salon_id; // Attach salon_id to request
+    next();
+  });
+}
+
+function requireOwner(req, res, next) {
+  if (req.user.role !== 'OWNER') {
+    return res.status(403).json({ message: 'Access denied. Owner only.' });
+  }
+  next();
+}
+
+// Middleware to ensure user can only access their own salon's data
+function requireSalonAccess(req, res, next) {
+  if (!req.salonId) {
+    return res.status(403).json({ message: 'Salon information missing from token' });
+  }
+  // Verification will be done at the route level by filtering by salon_id
+  next();
+}
+
+module.exports = { authenticateToken, requireOwner, requireSalonAccess };
