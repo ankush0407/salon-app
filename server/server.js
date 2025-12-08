@@ -19,6 +19,7 @@ const corsOptions = {
     'https://salon-subscription-app.vercel.app',
     'https://salon-subscription-app-*.vercel.app',
     'https://salon-app-liard.vercel.app',
+    /\.vercel\.app$/  // <--- ADD THIS! This allows ANY Vercel preview link,
   ],
   credentials: true,
   optionsSuccessStatus: 200
