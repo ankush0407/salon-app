@@ -2,11 +2,12 @@ const express = require('express');
 const router = express.Router();
 const db = require('../utils/db');
 const { authenticateToken, requireOwner } = require('../middleware/auth');
+const Papa = require('papaparse');
 
 // Dashboard Metrics Endpoint
 router.get('/', [authenticateToken, requireOwner], async (req, res) => {
   const { salonId } = req;
-
+  
   try {
     // 1. Total Customers
     const totalCustomersResult = await db.query(
@@ -14,28 +15,28 @@ router.get('/', [authenticateToken, requireOwner], async (req, res) => {
       [salonId]
     );
     const totalCustomers = totalCustomersResult.rows.length > 0 ? parseInt(totalCustomersResult.rows[0].count, 10) : 0;
-
+    
     // 2. New Customers (Last 30 Days)
     const newCustomersLast30DaysResult = await db.query(
       "SELECT COUNT(*) AS count FROM customers WHERE salon_id = $1 AND join_date >= NOW() - INTERVAL '30 days'",
       [salonId]
     );
     const newCustomersLast30Days = newCustomersLast30DaysResult.rows.length > 0 ? parseInt(newCustomersLast30DaysResult.rows[0].count, 10) : 0;
-
+    
     // 3. New Customers (Last 365 Days)
     const newCustomersLast365DaysResult = await db.query(
       "SELECT COUNT(*) AS count FROM customers WHERE salon_id = $1 AND join_date >= NOW() - INTERVAL '365 days'",
       [salonId]
     );
     const newCustomersLast365Days = newCustomersLast365DaysResult.rows.length > 0 ? parseInt(newCustomersLast365DaysResult.rows[0].count, 10) : 0;
-
+    
     // 4. Active Subscriptions
     const activeSubscriptionsResult = await db.query(
       'SELECT COUNT(*) AS count FROM subscriptions s JOIN customers c ON s.customer_id = c.id WHERE c.salon_id = $1 AND s.is_active = true',
       [salonId]
     );
     const activeSubscriptions = activeSubscriptionsResult.rows.length > 0 ? parseInt(activeSubscriptionsResult.rows[0].count, 10) : 0;
-
+    
     // 5. New Customers Trend (last 30 days)
     const newCustomersTrendResult = await db.query(
       `SELECT DATE(join_date) AS date, COUNT(*) AS count
@@ -46,7 +47,7 @@ router.get('/', [authenticateToken, requireOwner], async (req, res) => {
       [salonId]
     );
     const newCustomersTrend = newCustomersTrendResult.rows;
-
+    
     // 6. Subscription Type Breakdown
     const subscriptionTypeBreakdownResult = await db.query(
       `SELECT st.name, COUNT(s.id) AS count
@@ -57,19 +58,19 @@ router.get('/', [authenticateToken, requireOwner], async (req, res) => {
       [salonId]
     );
     const subscriptionTypeBreakdown = subscriptionTypeBreakdownResult.rows;
-
+    
     // Placeholder for more complex metrics
     const revenue = 0;
     const appointments = 0;
     const servicePopularity = [];
     const clientRetentionRate = 0;
-
-
+    
+    
     res.json({
       totalCustomers,
       newCustomers: {
-          last30Days: newCustomersLast30Days,
-          last365Days: newCustomersLast365Days,
+        last30Days: newCustomersLast30Days,
+        last365Days: newCustomersLast365Days,
       },
       activeSubscriptions,
       newCustomersTrend,
@@ -79,10 +80,47 @@ router.get('/', [authenticateToken, requireOwner], async (req, res) => {
       servicePopularity,
       clientRetentionRate,
     });
-
+    
   } catch (error) {
     console.error('Error fetching dashboard metrics:', error);
     res.status(500).json({ message: 'Error fetching dashboard metrics: ' + error.message });
+  }
+});
+
+// CSV Export Endpoint
+router.get('/export', [authenticateToken, requireOwner], async (req, res) => {
+  const { salonId } = req;
+
+  try {
+    const query = `
+      SELECT
+        c.name,
+        c.email,
+        c.phone,
+        st.name AS subscription_name,
+        st.visits AS total_visits,
+        COUNT(v.subscription_id) AS used_visits,
+        st.visits - COUNT(v.subscription_id) AS remaining_visits,
+        STRING_AGG(TO_CHAR(v.date, 'YYYY-MM-DD'), ', ') AS visit_dates,
+        STRING_AGG(v.note, '; ') AS visit_notes
+      FROM customers c
+      LEFT JOIN subscriptions s ON c.id = s.customer_id
+      LEFT JOIN subscription_types st ON s.type_id = st.id
+      LEFT JOIN visits v ON s.id = v.subscription_id
+      WHERE c.salon_id = $1
+      GROUP BY c.id, st.id
+      ORDER BY c.name;
+    `;
+
+    const { rows } = await db.query(query, [salonId]);
+    const csv = Papa.unparse(rows);
+
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', 'attachment; filename="customers.csv"');
+    res.status(200).send(csv);
+  } catch (error) {
+    console.error('Error exporting CSV:', error);
+    res.status(500).json({ message: 'Error exporting CSV: ' + error.message });
   }
 });
 
