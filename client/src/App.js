@@ -945,9 +945,9 @@ function OwnerPortal({
       case 'email-desc':
         return (b.email || '').localeCompare(a.email || '');
       case 'recent':
-        return (b.createdAt || '').localeCompare(a.createdAt || '');
+        return (b.join_date || '').localeCompare(a.join_date || '');
       case 'oldest':
-        return (a.createdAt || '').localeCompare(b.createdAt || '');
+        return (a.join_date || '').localeCompare(b.join_date || '');
       default:
         return 0;
     }
