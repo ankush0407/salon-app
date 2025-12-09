@@ -1370,11 +1370,12 @@ function CustomerDetailView({ customer, onBack, onCustomerUpdated }) {
                                     Visit {visitNumber}
                                   </span>
                                   <span className="text-xs text-gray-500">
-                                  {new Date(visit.date.split('T')[0] + 'T00:00:00').toLocaleDateString('en-US', { 
-                                        month: 'short', 
-                                        day: 'numeric', 
-                                        year: 'numeric' 
-                                      })}
+                                  {new Date(visit.date).toLocaleDateString('en-US', { 
+  month: 'short', 
+  day: 'numeric', 
+  year: 'numeric',
+  timeZone: 'America/Los_Angeles' // Optional: Ensures it stays in PST regardless of where the user is
+})}
                                   </span>
                                 </div>
                                 <div className="flex gap-2">
