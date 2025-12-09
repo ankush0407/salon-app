@@ -1370,18 +1370,11 @@ function CustomerDetailView({ customer, onBack, onCustomerUpdated }) {
                                     Visit {visitNumber}
                                   </span>
                                   <span className="text-xs text-gray-500">
-                                    {(() => {
-                                      // Extract just the date part (YYYY-MM-DD) from ISO timestamp
-                                      const dateStr = visit.date.split('T')[0];
-                                      // Create date in local timezone by treating it as local time
-                                      const [year, month, day] = dateStr.split('-');
-                                      const localDate = new Date(year, month - 1, day);
-                                      return localDate.toLocaleDateString('en-US', { 
+                                  {new Date(visit.date.split('T')[0] + 'T00:00:00').toLocaleDateString('en-US', { 
                                         month: 'short', 
                                         day: 'numeric', 
                                         year: 'numeric' 
-                                      });
-                                    })()}
+                                      })}
                                   </span>
                                 </div>
                                 <div className="flex gap-2">
