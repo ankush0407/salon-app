@@ -13,6 +13,7 @@ const customerRoutes = require('./routes/customers');
 const subscriptionRoutes = require('./routes/subscriptions');
 const subscriptionTypesRoutes = require('./routes/subscriptionTypes');
 const dashboardRoutes = require('./routes/dashboard');
+const clerkCustomerRoutes = require('./routes/customer');
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use('/api/customers', customerRoutes);
 app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/subscription-types', subscriptionTypesRoutes);
 app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/customer', clerkCustomerRoutes);
 
 // Health check
 app.get('/', (req, res) => {

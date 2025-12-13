@@ -28,6 +28,7 @@ CREATE TABLE customers (
   email VARCHAR(255),
   phone VARCHAR(50),
   join_date DATE NOT NULL,
+  clerk_user_id VARCHAR(255),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   UNIQUE(salon_id, email)
 );

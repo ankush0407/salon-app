@@ -2,6 +2,8 @@ import React, { useState, useCallback, useEffect } from 'react';
 import { Calendar, User, Package, ChevronRight, Search, Plus, Check, X, PieChart } from 'lucide-react';
 import { authAPI, customersAPI, subscriptionsAPI, subscriptionTypesAPI } from './services/api';
 import Dashboard from './components/Dashboard';
+import { useAuth, useUser } from '@clerk/clerk-react';
+import { CustomerLoginScreen, CustomerPortalApp } from './components/CustomerPortal';
 
 
 function AddCustomerModal({ onClose, onSubmit }) {
@@ -388,6 +390,7 @@ function RedeemVisitModal({ onClose, onSubmit, subscriptionName }) {
   );
 }
 function LoginScreen({ onLogin }) {
+  const [loginMode, setLoginMode] = useState('choice'); // 'choice', 'owner', or 'customer'
   const [isRegistering, setIsRegistering] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -442,9 +445,94 @@ function LoginScreen({ onLogin }) {
     }
   };
 
+  // Login choice screen
+  if (loginMode === 'choice') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-4">
+              <Package className="w-8 h-8 text-purple-600" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-800">Salon Tracker</h1>
+            <p className="text-gray-600 mt-2">Choose your login type</p>
+          </div>
+
+          <div className="space-y-4">
+            <button
+              onClick={() => setLoginMode('owner')}
+              className="w-full p-6 border-2 border-purple-200 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all text-left"
+            >
+              <div className="font-bold text-lg text-gray-800">🏢 Salon Owner</div>
+              <p className="text-sm text-gray-600 mt-1">Manage your salon, customers, and subscriptions</p>
+            </button>
+
+            <button
+              onClick={() => setLoginMode('customer')}
+              className="w-full p-6 border-2 border-purple-200 rounded-xl hover:border-purple-500 hover:bg-purple-50 transition-all text-left"
+            >
+              <div className="font-bold text-lg text-gray-800">👤 Customer</div>
+              <p className="text-sm text-gray-600 mt-1">View your subscriptions and visit history</p>
+            </button>
+          </div>
+
+          <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-purple-50 rounded-lg border border-purple-200">
+            <p className="text-sm font-semibold text-gray-800 mb-2">👋 Welcome!</p>
+            <p className="text-xs text-gray-600">
+              Select your role to log in to the Salon Tracker.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Customer login screen (uses Clerk)
+  if (loginMode === 'customer') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center p-4">
+        <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+          <button
+            onClick={() => {
+              setLoginMode('choice');
+              setEmail('');
+              setPassword('');
+            }}
+            className="mb-4 text-purple-600 hover:text-purple-700 text-sm font-medium"
+          >
+            ← Back to login choice
+          </button>
+
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-4">
+              <User className="w-8 h-8 text-purple-600" />
+            </div>
+            <h1 className="text-3xl font-bold text-gray-800">Customer Login</h1>
+            <p className="text-gray-600 mt-2">Passwordless login with email</p>
+          </div>
+
+          <CustomerLoginScreen onLoginSuccess={() => {}} />
+        </div>
+      </div>
+    );
+  }
+
+  // Owner login screen (existing)
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 to-pink-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+        <button
+          onClick={() => {
+            setLoginMode('choice');
+            setEmail('');
+            setPassword('');
+            setIsRegistering(false);
+          }}
+          className="mb-4 text-purple-600 hover:text-purple-700 text-sm font-medium"
+        >
+          ← Back to login choice
+        </button>
+
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-4">
             <Package className="w-8 h-8 text-purple-600" />
@@ -1463,6 +1551,9 @@ function CustomerDetailView({ customer, onBack, onCustomerUpdated }) {
 
 
 export default function SalonApp() {
+  const { isSignedIn, isLoaded } = useAuth();
+  const { user: clerkUser } = useUser();
+  
   const [currentUser, setCurrentUser] = useState(null);
   const [userRole, setUserRole] = useState(null);
   const [salonId, setSalonId] = useState(null);
@@ -1507,27 +1598,38 @@ export default function SalonApp() {
     setSelectedCustomer(null);
   };
 
-  if (!currentUser) {
-    return <LoginScreen onLogin={handleLogin} />;
+  // If Clerk is still loading, show loading screen
+  if (!isLoaded) {
+    return <div className="flex items-center justify-center h-screen"><p>Loading...</p></div>;
   }
 
-  if (showDashboard) {
-    return <Dashboard onBack={() => setShowDashboard(false)} />;
+  // If user is Clerk-authenticated, show Customer Portal
+  if (isSignedIn && clerkUser) {
+    return <CustomerPortalApp clerkUser={clerkUser} onLogout={() => {}} />;
   }
 
-  // Only show Owner Portal - Customer login has been removed
-  return (
-    <OwnerPortal
-      customers={customers}
-      setCustomers={setCustomers}
-      selectedCustomer={selectedCustomer}
-      setSelectedCustomer={setSelectedCustomer}
-      searchTerm={searchTerm}
-      setSearchTerm={setSearchTerm}
-      showAddCustomer={showAddCustomer}
-      setShowAddCustomer={setShowAddCustomer}
-      setShowDashboard={setShowDashboard}
-      onLogout={handleLogout}
-    />
-  );
+  // If owner is logged in, show Owner Portal
+  if (currentUser) {
+    if (showDashboard) {
+      return <Dashboard onBack={() => setShowDashboard(false)} />;
+    }
+
+    return (
+      <OwnerPortal
+        customers={customers}
+        setCustomers={setCustomers}
+        selectedCustomer={selectedCustomer}
+        setSelectedCustomer={setSelectedCustomer}
+        searchTerm={searchTerm}
+        setSearchTerm={setSearchTerm}
+        showAddCustomer={showAddCustomer}
+        setShowAddCustomer={setShowAddCustomer}
+        setShowDashboard={setShowDashboard}
+        onLogout={handleLogout}
+      />
+    );
+  }
+
+  // If nobody is logged in, show login screen
+  return <LoginScreen onLogin={handleLogin} />;
 }
