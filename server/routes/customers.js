@@ -2,6 +2,8 @@ const express = require('express');
 const router = express.Router();
 const db = require('../utils/db');
 const { authenticateToken, requireSalonAccess } = require('../middleware/auth');
+const clerk = require('@clerk/clerk-sdk-node');
+const clerkClient = clerk.clerkClient;
 
 // Get all customers for the salon
 router.get('/', authenticateToken, requireSalonAccess, async (req, res) => {
@@ -47,8 +49,32 @@ router.post('/', authenticateToken, requireSalonAccess, async (req, res) => {
       [salonId, name, email || null, phone, join_date]
     );
     
-    console.log('✅ Customer added to PostgreSQL:', rows[0]);
-    res.status(201).json(rows[0]);
+    const newCustomer = rows[0];
+    console.log('✅ Customer added to PostgreSQL:', newCustomer);
+
+    // After successfully adding to DB, create user in Clerk
+    if (email) {
+      try {
+        console.log('✨ Creating user in Clerk:', { email, name });
+        await clerkClient.users.createUser({
+          emailAddress: [email],
+          skipPasswordRequirement: true,
+          firstName: name,
+        });
+        console.log('🎉 Successfully created Clerk user for:', email);
+      } catch (error) {
+        // Check if the error is due to the user already existing
+        const isDuplicate = error.errors && error.errors.some(e => e.code === 'form_identifier_exists');
+        if (isDuplicate) {
+          console.log('🤷‍♂️ User already exists in Clerk, skipping creation:', email);
+        } else {
+          // For any other Clerk-related error, log it but don't fail the request
+          console.error('❌ Error creating Clerk user:', error.errors || error.message);
+        }
+      }
+    }
+    
+    res.status(201).json(newCustomer);
   } catch (error) {
     console.error('❌ Error adding customer:', error.message);
     res.status(500).json({ message: 'Failed to add customer' });
