@@ -24,6 +24,7 @@ const corsOptions = {
     'https://salon-subscription-app.vercel.app',
     'https://salon-subscription-app-*.vercel.app',
     'https://salon-app-liard.vercel.app',
+    /\.vercel\.app$/
   ],
   credentials: true,
   optionsSuccessStatus: 200
