@@ -24,6 +24,7 @@ const corsOptions = {
     'https://salon-subscription-app.vercel.app',
     'https://salon-subscription-app-*.vercel.app',
     'https://salon-app-liard.vercel.app',
+    'https://www.markmyvisit.com',
     /\.vercel\.app$/
   ],
   credentials: true,
