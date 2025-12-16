@@ -1,12 +1,12 @@
 import React from 'react';
-import { LayoutDashboard, Users, CreditCard, Settings } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, User } from 'lucide-react';
 import './SalonNavigation.css';
 
 const navItems = [
   { id: 'dashboard', icon: LayoutDashboard, label: 'Dashboard' },
   { id: 'customers', icon: Users, label: 'Customers' },
   { id: 'subscriptions', icon: CreditCard, label: 'Subscriptions' },
-  { id: 'settings', icon: Settings, label: 'Settings' },
+  { id: 'profile', icon: User, label: 'Profile' },
 ];
 
 function SalonNavigation({ activeView, setActiveView }) {

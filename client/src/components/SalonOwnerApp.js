@@ -3,7 +3,7 @@ import SalonNavigation from './SalonNavigation';
 import Dashboard from './Dashboard';
 import OwnerPortal from './OwnerPortal';
 import Subscriptions from './Subscriptions';
-import Settings from './Settings';
+import Profile from './Profile';
 import './SalonOwnerApp.css';
 
 function SalonOwnerApp({ onLogout }) {
@@ -17,8 +17,8 @@ function SalonOwnerApp({ onLogout }) {
         return <OwnerPortal onLogout={onLogout} setShowDashboard={() => setActiveView('dashboard')} />;
       case 'subscriptions':
         return <Subscriptions />;
-      case 'settings':
-        return <Settings />;
+      case 'profile':
+        return <Profile />;
       default:
         return <Dashboard onBack={() => {}} />;
     }

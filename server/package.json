@@ -1,7 +1,7 @@
 {
   "scripts": {
     "start": "node server.js",
-    "dev": "nodemon server.js"
+    "dev": "set NODE_ENV=development && nodemon server.js"
   },
   "name": "salon-app-server",
   "version": "1.0.0",

@@ -1,8 +1,10 @@
 // Load environment variables from .env file
 if (process.env.NODE_ENV) {
   require('dotenv').config({ path: __dirname + `/.env.${process.env.NODE_ENV}` });
+  console.log(`✅ Loaded environment from .env.${process.env.NODE_ENV}`);
 } else {
   require('dotenv').config({ path: __dirname + '/.env' });
+  console.log('✅ Loaded environment from .env');
 }
 
 const express = require('express');
@@ -14,6 +16,7 @@ const subscriptionRoutes = require('./routes/subscriptions');
 const subscriptionTypesRoutes = require('./routes/subscriptionTypes');
 const dashboardRoutes = require('./routes/dashboard');
 const clerkCustomerRoutes = require('./routes/customer');
+const profileRoutes = require('./routes/profile');
 
 const app = express();
 
@@ -33,6 +36,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json());
+app.use(express.static('uploads')); // Serve uploaded files
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -41,6 +45,7 @@ app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/subscription-types', subscriptionTypesRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/customer', clerkCustomerRoutes);
+app.use('/api/profile', profileRoutes);
 
 // Health check
 app.get('/', (req, res) => {
