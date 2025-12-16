@@ -34,6 +34,29 @@ router.get('/', async (req, res) => {
   }
 });
 
+// Get invoices for the salon
+router.get('/invoices', async (req, res) => {
+  try {
+    const { salonId } = req.auth;
+    if (!salonId) {
+      return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    const { rows } = await db.query(
+      `SELECT id, stripe_invoice_id, amount, currency, status, created_at, due_date, pdf_url 
+       FROM stripe_invoices 
+       WHERE salon_id = $1 
+       ORDER BY created_at DESC`,
+      [salonId]
+    );
+
+    res.json(rows || []);
+  } catch (error) {
+    console.error('Error fetching invoices:', error);
+    res.status(500).json({ error: 'Failed to fetch invoices' });
+  }
+});
+
 // Update profile data
 router.put('/', upload.single('salonImage'), async (req, res) => {
   try {
