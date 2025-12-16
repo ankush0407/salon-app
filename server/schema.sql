@@ -5,6 +5,9 @@ CREATE TABLE salons (
   email VARCHAR(255) UNIQUE NOT NULL,
   phone VARCHAR(50),
   address TEXT,
+  salon_image_url TEXT,
+  stripe_customer_id VARCHAR(255),
+  subscription_status VARCHAR(50) DEFAULT 'inactive',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   is_active BOOLEAN NOT NULL DEFAULT true
 );

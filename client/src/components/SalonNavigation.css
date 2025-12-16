@@ -1,0 +1,126 @@
+/* --- Modern SaaS Variables --- */
+:root {
+  --nav-bg: #ffffff;
+  --nav-border: #f1f5f9; /* Softer border */
+  --nav-text: #64748b;   /* Slate gray for better readability */
+  --nav-text-hover: #1e293b;
+  --primary-color: #8b5cf6; /* Matching your Purple buttons */
+  --primary-light: #f3e8ff; /* Light purple background for active state */
+  --transition-speed: 0.2s;
+}
+
+/* --- Base Container --- */
+.salon-navigation {
+  display: flex;
+  background-color: var(--nav-bg);
+  /* Using a subtle shadow instead of a hard border for depth */
+  box-shadow: 1px 0 10px rgba(0, 0, 0, 0.03); 
+  border-right: 1px solid var(--nav-border);
+  z-index: 1000; /* Ensure it stays on top */
+}
+
+/* --- Nav Items (Common) --- */
+.nav-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  margin: 0.25rem 0.5rem; /* Add spacing so items don't touch edges */
+  color: var(--nav-text);
+  text-decoration: none;
+  font-weight: 500; /* Slightly bolder text looks more premium */
+  border-radius: 8px; /* "Pill" shape corners */
+  transition: all var(--transition-speed) ease;
+}
+
+/* Hover State */
+.nav-item:hover {
+  background-color: #f8fafc;
+  color: var(--nav-text-hover);
+}
+
+/* Active State (The Purple Highlight) */
+.nav-item.active {
+  color: var(--primary-color);
+  background-color: var(--primary-light);
+  font-weight: 600;
+}
+
+.nav-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem; /* Slightly larger icons */
+}
+
+/* --- Mobile First: Bottom Bar --- */
+@media (max-width: 767px) {
+  .salon-navigation {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 70px; /* Taller touch targets */
+    justify-content: space-around;
+    padding-bottom: env(safe-area-inset-bottom); /* Fix for iPhone X+ home bar */
+    border-top: 1px solid var(--nav-border);
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.05); /* Upward shadow */
+  }
+
+  .nav-item {
+    flex-direction: column;
+    justify-content: center;
+    font-size: 0.7rem;
+    margin: 0;
+    border-radius: 0;
+    flex-grow: 1;
+    background-color: transparent; /* Remove pill bg on mobile to save space */
+  }
+  
+  /* Mobile Active State: Just color, no background */
+  .nav-item.active {
+    background-color: transparent;
+    position: relative;
+  }
+  
+  /* Add a small dot indicator for mobile active state */
+  .nav-item.active::after {
+    content: '';
+    position: absolute;
+    top: 5px;
+    width: 4px;
+    height: 4px;
+    background-color: var(--primary-color);
+    border-radius: 50%;
+  }
+
+  .nav-icon {
+    margin-bottom: 4px;
+    font-size: 1.4rem;
+  }
+}
+
+/* --- Desktop: Sidebar --- */
+@media (min-width: 768px) {
+  .salon-navigation {
+    position: sticky; /* Keeps it visible while scrolling content */
+    top: 0;
+    flex-direction: column;
+    width: fit-content;
+    min-width: 180px; /* Optional: Sets a minimum so it doesn't look too skinny */
+    padding-right: 1rem; /* Adds a small gap between the pills and the border */
+    height: 100vh;
+    padding-top: 1.5rem;
+  }
+
+  .nav-item {
+    flex-direction: row;
+    justify-content: flex-start;
+    font-size: 0.95rem;
+    gap: 12px;
+    white-space: nowrap; /* Uses gap instead of margin-right for better alignment */
+  }
+  
+  .nav-icon {
+    width: 24px; /* Fixed width prevents label jumping */
+  }
+}
