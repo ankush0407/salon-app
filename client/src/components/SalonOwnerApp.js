@@ -35,8 +35,6 @@ function SalonOwnerApp({ onLogout }) {
 }
 
 export default SalonOwnerApp;
-
-import React, { useState } from 'react';
 import SalonNavigation from './SalonNavigation';
 import Dashboard from './Dashboard';
 import OwnerPortal from './OwnerPortal';
