@@ -26,7 +26,7 @@ function SalonOwnerApp({ onLogout }) {
 
   return (
     <div className="salon-owner-app">
-      <SalonNavigation activeView={activeView} setActiveView={setActiveView} />
+      <SalonNavigation activeView={activeView} setActiveView={setActiveView} onLogout={onLogout} />
       <main className="main-content">
         {renderContent()}
       </main>

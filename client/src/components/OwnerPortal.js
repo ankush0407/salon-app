@@ -102,21 +102,6 @@ function OwnerPortal({ onLogout }) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <nav className="bg-white shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-3">
-            <Package className="w-8 h-8 text-purple-600" />
-            <h1 className="text-xl font-bold text-gray-800">Owner Portal</h1>
-          </div>
-          <button
-            onClick={onLogout}
-            className="text-gray-600 hover:text-gray-800 font-medium"
-          >
-            Logout
-          </button>
-        </div>
-      </nav>
-
       <div className="max-w-7xl mx-auto p-4">
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">

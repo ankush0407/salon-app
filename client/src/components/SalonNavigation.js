@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, Users, CreditCard, User } from 'lucide-react';
+import { LayoutDashboard, Users, CreditCard, User, LogOut } from 'lucide-react';
 import './SalonNavigation.css';
 
 const navItems = [
@@ -9,26 +9,37 @@ const navItems = [
   { id: 'profile', icon: User, label: 'Profile' },
 ];
 
-function SalonNavigation({ activeView, setActiveView }) {
+function SalonNavigation({ activeView, setActiveView, onLogout }) {
   return (
     <nav className="salon-navigation">
-      {navItems.map(item => {
-        const Icon = item.icon;
-        return (
-          <a
-            key={item.id}
-            href={`#${item.id}`}
-            className={`nav-item ${activeView === item.id ? 'active' : ''}`}
-            onClick={(e) => {
-              e.preventDefault();
-              setActiveView(item.id);
-            }}
-          >
-            <Icon className="nav-icon" />
-            <span className="nav-label">{item.label}</span>
-          </a>
-        );
-      })}
+      <div className="nav-items-container">
+        {navItems.map(item => {
+          const Icon = item.icon;
+          return (
+            <a
+              key={item.id}
+              href={`#${item.id}`}
+              className={`nav-item ${activeView === item.id ? 'active' : ''}`}
+              onClick={(e) => {
+                e.preventDefault();
+                setActiveView(item.id);
+              }}
+            >
+              <Icon className="nav-icon" />
+              <span className="nav-label">{item.label}</span>
+            </a>
+          );
+        })}
+      </div>
+      {onLogout && (
+        <button
+          onClick={onLogout}
+          className="nav-logout"
+        >
+          <LogOut className="nav-icon" />
+          <span className="nav-label">Logout</span>
+        </button>
+      )}
     </nav>
   );
 }
