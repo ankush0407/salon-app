@@ -68,10 +68,17 @@
     left: 0;
     right: 0;
     height: 70px; /* Taller touch targets */
+    flex-direction: row;
     justify-content: space-around;
     padding-bottom: env(safe-area-inset-bottom); /* Fix for iPhone X+ home bar */
     border-top: 1px solid var(--nav-border);
     box-shadow: 0 -4px 20px rgba(0,0,0,0.05); /* Upward shadow */
+  }
+
+  .nav-items-container {
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-around;
   }
 
   .nav-item {
@@ -80,8 +87,9 @@
     font-size: 0.7rem;
     margin: 0;
     border-radius: 0;
-    flex-grow: 1;
+    flex-grow: 0;
     background-color: transparent; /* Remove pill bg on mobile to save space */
+    padding: 0.5rem 0.25rem;
   }
   
   /* Mobile Active State: Just color, no background */
