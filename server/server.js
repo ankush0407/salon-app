@@ -45,7 +45,10 @@ app.use('/api/subscriptions', subscriptionRoutes);
 app.use('/api/subscription-types', subscriptionTypesRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/customer', clerkCustomerRoutes);
+<<<<<<< HEAD
 app.use('/api/profile', profileRoutes);
+=======
+>>>>>>> 26edd09c88d1e51192e471bbee5621dcaa6202dc
 
 // Health check
 app.get('/', (req, res) => {
