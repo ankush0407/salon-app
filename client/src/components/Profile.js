@@ -374,8 +374,8 @@ function Profile() {
               {/* Stripe Buy Button */}
               <div className="stripe-buy-button-container">
                 <stripe-buy-button
-                  buy-button-id="buy_btn_1SemdnH5T5tsZc3NHXSdbXAw"
-                  publishable-key="pk_test_51NZOrJH5T5tsZc3N9HXiUDLiG2BlkbrV7cdQ8ZfLQAvrC4zyiz3xQo2yAfdtKfhluy4zfnUV7lKpbzrxHtGI4s9y00W8fOC5Xe"
+                  buy-button-id="buy_btn_1ScEMQH5T5tsZc3Ntqhxama4"
+                  publishable-key="pk_live_51NZOrJH5T5tsZc3NmnZKazw76j2u5NDPuQokPGmDLAKcf6Xd7ieM4tIlAQYr4pV3B4nPPjePzW4XBnqGcKKgnMVr00f9epKV6U"
                 >
                 </stripe-buy-button>
               </div>
