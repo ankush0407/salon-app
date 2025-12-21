@@ -69,7 +69,7 @@ function LoginScreen({ onLogin }) {
               <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-4">
                 <Package className="w-8 h-8 text-purple-600" />
               </div>
-              <h1 className="text-3xl font-bold text-gray-800">Salon Tracker</h1>
+              <h1 className="text-3xl font-bold text-gray-800">MarkmyVisit</h1>
               <p className="text-gray-600 mt-2">Choose your login type</p>
             </div>
   
