@@ -152,7 +152,7 @@ function LoginScreen({ onLogin }) {
             <div className="inline-flex items-center justify-center w-16 h-16 bg-purple-100 rounded-full mb-4">
               <Package className="w-8 h-8 text-purple-600" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-800">Salon Tracker</h1>
+            <h1 className="text-3xl font-bold text-gray-800">MarkMyVisit</h1>
             <p className="text-gray-600 mt-2">{isRegistering ? 'Create Your Salon Account' : 'Owner Portal'}</p>
           </div>
   
@@ -175,7 +175,7 @@ function LoginScreen({ onLogin }) {
                   <input
                     type="tel"
                     value={salonPhone}
-                    onChange={(e) => setSalonPhone(e.targe.value)}
+                    onChange={(e) => setSalonPhone(e.target.value)}
                     placeholder="(555) 123-4567"
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   />
