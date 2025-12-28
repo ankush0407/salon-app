@@ -1,27 +1,13 @@
-// Load environment variables from .env file
-if (process.env.NODE_ENV) {
-  require('dotenv').config({ path: __dirname + `/.env.${process.env.NODE_ENV}` });
-  console.log(`✅ Loaded environment from .env.${process.env.NODE_ENV}`);
-} else {
-  require('dotenv').config({ path: __dirname + '/.env' });
-  console.log('✅ Loaded environment from .env');
-}
+// Load environment variables
+require('dotenv').config({ path: `${__dirname}/.env.${process.env.NODE_ENV || 'development'}` });
 
 const express = require('express');
 const cors = require('cors');
 
-const authRoutes = require('./routes/auth');
-const customerRoutes = require('./routes/customers');
-const subscriptionRoutes = require('./routes/subscriptions');
-const subscriptionTypesRoutes = require('./routes/subscriptionTypes');
-const dashboardRoutes = require('./routes/dashboard');
-const clerkCustomerRoutes = require('./routes/customer');
-const profileRoutes = require('./routes/profile');
-
 const app = express();
 
-// CORS Configuration
-const corsOptions = {
+// Middleware
+app.use(cors({
   origin: [
     'http://localhost:3000',
     'https://salon-subscription-app.vercel.app',
@@ -32,33 +18,28 @@ const corsOptions = {
   ],
   credentials: true,
   optionsSuccessStatus: 200
-};
+}));
 
-app.use(cors(corsOptions));
 app.use(express.json());
-app.use(express.static('uploads')); // Serve uploaded files
+app.use(express.static('uploads'));
 
 // Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/customers', customerRoutes);
-app.use('/api/subscriptions', subscriptionRoutes);
-app.use('/api/subscription-types', subscriptionTypesRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/customer', clerkCustomerRoutes);
-app.use('/api/profile', profileRoutes);
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/customers', require('./routes/customers'));
+app.use('/api/subscriptions', require('./routes/subscriptions'));
+app.use('/api/subscription-types', require('./routes/subscriptionTypes'));
+app.use('/api/dashboard', require('./routes/dashboard'));
+app.use('/api/customer', require('./routes/customer'));
+app.use('/api/profile', require('./routes/profile'));
 
 // Health check
-app.get('/', (req, res) => {
-  res.json({ message: 'Salon API is running' });
-});
+app.get('/', (req, res) => res.json({ message: 'Salon API running' }));
 
-// Error handling
-app.use((err, req, res, next) => {
+// Error handler
+app.use((err, req, res) => {
   console.error(err.stack);
-  res.status(500).json({ message: 'Something went wrong!' });
+  res.status(500).json({ message: 'Server error' });
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-});
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

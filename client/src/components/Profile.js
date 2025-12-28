@@ -374,8 +374,8 @@ function Profile() {
               {/* Stripe Buy Button */}
               <div className="stripe-buy-button-container">
                 <stripe-buy-button
-                  buy-button-id="buy_btn_1ScEMQH5T5tsZc3Ntqhxama4"
-                  publishable-key="pk_live_51NZOrJH5T5tsZc3NmnZKazw76j2u5NDPuQokPGmDLAKcf6Xd7ieM4tIlAQYr4pV3B4nPPjePzW4XBnqGcKKgnMVr00f9epKV6U"
+                  buy-button-id={process.env.REACT_APP_STRIPE_BUY_BUTTON_ID}
+                  publishable-key={process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY}
                 >
                 </stripe-buy-button>
               </div>

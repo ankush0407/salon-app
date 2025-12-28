@@ -1,8 +1,11 @@
 const jwt = require('jsonwebtoken');
 
+/**
+ * JWT authentication middleware
+ * Verifies token and extracts user context including salon_id
+ */
 function authenticateToken(req, res, next) {
-  const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  const token = req.headers.authorization?.split(' ')[1];
   
   if (!token) {
     return res.status(401).json({ message: 'Access token required' });
@@ -13,11 +16,14 @@ function authenticateToken(req, res, next) {
       return res.status(403).json({ message: 'Invalid or expired token' });
     }
     req.user = user;
-    req.salonId = user.salon_id; // Attach salon_id to request
+    req.salonId = user.salon_id;
     next();
   });
 }
 
+/**
+ * Verify user has OWNER role
+ */
 function requireOwner(req, res, next) {
   if (req.user.role !== 'OWNER') {
     return res.status(403).json({ message: 'Access denied. Owner only.' });
@@ -25,12 +31,13 @@ function requireOwner(req, res, next) {
   next();
 }
 
-// Middleware to ensure user can only access their own salon's data
+/**
+ * Verify user has salon context (salon_id in JWT)
+ */
 function requireSalonAccess(req, res, next) {
   if (!req.salonId) {
-    return res.status(403).json({ message: 'Salon information missing from token' });
+    return res.status(403).json({ message: 'Salon context required' });
   }
-  // Verification will be done at the route level by filtering by salon_id
   next();
 }
 
