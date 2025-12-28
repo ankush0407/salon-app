@@ -202,6 +202,7 @@ router.get('/subscriptions/:id', requireClerkAuth, async (req, res) => {
         st.name,
         st.price,
         st.visits as total_visits,
+        st.salon_id,
         sl.name as salon_name,
         json_agg(json_build_object('id', v.id, 'date', v.date, 'note', v.note)
           ORDER BY v.date ASC) FILTER (WHERE v.id IS NOT NULL) as visits
@@ -210,7 +211,7 @@ router.get('/subscriptions/:id', requireClerkAuth, async (req, res) => {
       JOIN salons sl ON st.salon_id = sl.id
       LEFT JOIN visits v ON s.id = v.subscription_id
       WHERE s.customer_id = $1 AND s.id = $2
-      GROUP BY s.id, st.id, sl.name`,
+      GROUP BY s.id, st.id, sl.name, st.salon_id`,
       [customerId, id]
     );
 
@@ -222,6 +223,7 @@ router.get('/subscriptions/:id', requireClerkAuth, async (req, res) => {
     const subscription = {
       id: sub.id,
       name: sub.name,
+      salonId: sub.salon_id,
       salonName: sub.salon_name,
       price: sub.price,
       startDate: sub.start_date,
@@ -232,6 +234,7 @@ router.get('/subscriptions/:id', requireClerkAuth, async (req, res) => {
       visits: sub.visits || [],
     };
 
+    console.log('📋 Returning subscription details:', { id: subscription.id, name: subscription.name, salonId: subscription.salonId });
     res.json(subscription);
   } catch (error) {
     console.error('Error fetching subscription details:', error);

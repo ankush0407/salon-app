@@ -1,18 +1,58 @@
-# 🎨 Salon Tracker - Multi-Tenant Implementation
+# 🎨 MarkMyVisit - Salon Appointment & Subscription Management
 
-A multi-tenant subscription management system for salon owners to track customers, manage subscription packages, and log service visits.
+Production-ready multi-tenant salon management system with appointment booking, subscription management, and owner/customer portals.
 
-## ✨ What's New: Multi-Tenant Support
+**Status:** ✅ Production Ready v1.0
 
-The application now supports **multiple independent salon owners** on the same platform with complete data isolation.
+## Table of Contents
 
-### Key Features
+1. [Features](#features)
+2. [Quick Start](#quick-start)
+3. [Architecture](#architecture)
+4. [Technology Stack](#technology-stack)
+5. [Installation & Setup](#installation--setup)
+6. [Appointment Booking System](#appointment-booking-system)
+7. [API Quick Reference](#api-quick-reference)
+8. [Deployment](#deployment)
+9. [Troubleshooting](#troubleshooting)
 
-✅ **Multiple Salon Owners** - Each owner registers their own salon account
-✅ **Complete Data Isolation** - Customers, subscriptions, packages are salon-specific  
-✅ **Secure Authentication** - JWT-based authentication with salon context
-✅ **Email Reuse** - Same email can be used by different salon owners
-✅ **Scalable Architecture** - Unlimited salon owners supported
+### 📅 Appointment Booking Module (NEW)
+✅ **Soft Booking System** - Request-confirm workflow for appointments
+✅ **Owner Availability Management** - Set working days, hours, and slot duration
+✅ **Available Slots Calendar** - Customers see available times based on salon hours
+✅ **Negotiation Workflow** - Owners can propose alternative times
+✅ **Status Tracking** - PENDING → CONFIRMED, RESCHEDULE_PROPOSED workflows
+
+### 💳 Subscription Management
+✅ **Multiple Salon Owners** - Each owner manages their own salon
+✅ **Subscription Packages** - Create custom subscription types
+✅ **Visit Tracking** - Log and manage customer visits
+✅ **Complete Data Isolation** - Secure multi-tenant architecture
+✅ **Subscription Progress** - Visual progress tracking for customers
+
+### 🔐 Security
+✅ **JWT Authentication** - Secure owner authentication
+✅ **Clerk Integration** - Customer sign-in via email codes
+✅ **Role-Based Access** - Owner vs Customer permissions
+
+## 🎯 New in v1.0: Appointment Booking
+
+See [APPOINTMENT_BOOKING_IMPLEMENTATION.md](./APPOINTMENT_BOOKING_IMPLEMENTATION.md) for complete documentation.
+
+### Quick Feature Overview
+
+**For Salon Owners:**
+- Configure working hours, days, and slot duration in "Availability Settings"
+- View and manage appointment requests in "Appointments" manager
+- Confirm bookings or propose alternative times
+- Track appointment status changes
+
+**For Customers:**
+- Click "Book Visit" on any active subscription
+- Browse available time slots in an interactive calendar
+- Add optional notes to appointment requests
+- Accept or decline proposed times
+- View complete appointment history
 
 ## Quick Start
 
@@ -21,6 +61,7 @@ The application now supports **multiple independent salon owners** on the same p
 - **Node.js** v14+
 - **PostgreSQL** (or Neon for cloud)
 - **npm** or **yarn**
+- **Clerk Account** (for customer authentication)
 
 ### 1. Setup Database
 
@@ -28,7 +69,7 @@ The application now supports **multiple independent salon owners** on the same p
 # Create PostgreSQL database
 createdb salon_tracker
 
-# Run schema
+# Run schema (includes new appointment booking tables)
 psql -U username -d salon_tracker -f server/schema.sql
 ```
 

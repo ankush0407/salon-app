@@ -5,8 +5,6 @@
 .main-content {
   flex-grow: 1;
   padding: 1rem;
-  /* Add padding at the bottom to avoid content being hidden by the mobile nav */
-  padding-bottom: 80px; 
 }
 
 .main-content-header {
@@ -32,6 +30,11 @@
 
 @media (max-width: 767px) {
   .salon-owner-app {
-    flex-direction: column-reverse;
+    flex-direction: column;
+  }
+
+  .main-content {
+    padding-top: 1.5rem;
+    padding-bottom: 1rem;
   }
 }

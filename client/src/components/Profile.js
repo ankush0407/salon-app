@@ -39,9 +39,7 @@ function Profile() {
       // First, sync the Stripe customer ID
       const syncCustomer = async () => {
         try {
-          console.log('🔄 Frontend: Starting sync-stripe-customer POST call...');
           const syncResponse = await api.post('/profile/sync-stripe-customer');
-          console.log('✅ Frontend: Synced Stripe customer:', syncResponse.data);
           
           // Then refresh invoices
           setTimeout(() => {
