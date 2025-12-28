@@ -9,26 +9,18 @@ import './SalonOwnerApp.css';
 function SalonOwnerApp({ onLogout }) {
   const [activeView, setActiveView] = useState('dashboard');
 
-  const renderContent = () => {
-    switch (activeView) {
-      case 'dashboard':
-        return <Dashboard onBack={() => {}} />;
-      case 'customers':
-        return <OwnerPortal onLogout={onLogout} setShowDashboard={() => setActiveView('dashboard')} />;
-      case 'subscriptions':
-        return <Subscriptions />;
-      case 'profile':
-        return <Profile />;
-      default:
-        return <Dashboard onBack={() => {}} />;
-    }
+  const views = {
+    dashboard: <Dashboard onBack={() => {}} />,
+    customers: <OwnerPortal onLogout={onLogout} setShowDashboard={() => setActiveView('dashboard')} />,
+    subscriptions: <Subscriptions />,
+    profile: <Profile />
   };
 
   return (
     <div className="salon-owner-app">
       <SalonNavigation activeView={activeView} setActiveView={setActiveView} onLogout={onLogout} />
       <main className="main-content">
-        {renderContent()}
+        {views[activeView] || views.dashboard}
       </main>
     </div>
   );
