@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Calendar, CheckCircle, Clock, X, AlertCircle, Settings } from 'lucide-react';
 import { appointmentsAPI } from '../services/api';
 import './AppointmentsManager.css';
@@ -11,8 +11,27 @@ function AppointmentsManager({ onOpenSettings }) {
   const [selectedAppointment, setSelectedAppointment] = useState(null);
   const [proposingTime, setProposingTime] = useState(false);
   const [proposedDateTime, setProposedDateTime] = useState('');
+  const [salonTimezone, setSalonTimezone] = useState('UTC');
 
   const statuses = ['PENDING', 'CONFIRMED', 'RESCHEDULE_PROPOSED', 'CANCELLED'];
+
+  const fetchAppointments = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError('');
+      const response = await appointmentsAPI.getForOwner(selectedStatus);
+      setAppointments(response.data.appointments || []);
+      if (response.data.salonTimezone) {
+        setSalonTimezone(response.data.salonTimezone);
+      }
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || err.message || 'Failed to fetch appointments';
+      setError(errorMsg);
+      console.error('Error fetching appointments:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [selectedStatus]);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -21,22 +40,7 @@ function AppointmentsManager({ onOpenSettings }) {
     } else {
       setError('Authentication required. Please log in again.');
     }
-  }, [selectedStatus]);
-
-  const fetchAppointments = async () => {
-    try {
-      setLoading(true);
-      setError('');
-      const response = await appointmentsAPI.getForOwner(selectedStatus);
-      setAppointments(response.data.appointments || []);
-    } catch (err) {
-      const errorMsg = err.response?.data?.message || err.message || 'Failed to fetch appointments';
-      setError(errorMsg);
-      console.error('Error fetching appointments:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [fetchAppointments]);
 
   const handleConfirm = async (appointmentId) => {
     try {
@@ -78,14 +82,26 @@ function AppointmentsManager({ onOpenSettings }) {
     }
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString('en-US', {
+  // Format date/time in salon's timezone (same pattern as BookingModal)
+  const formatDateTime = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    
+    const dateStr = date.toLocaleDateString('en-US', {
+      timeZone: salonTimezone,
       month: 'short',
       day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      year: 'numeric'
     });
+    
+    const timeStr = date.toLocaleTimeString('en-US', {
+      timeZone: salonTimezone,
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+    
+    return `${dateStr}, ${timeStr}`;
   };
 
   const getStatusBadgeClass = (status) => {
@@ -174,13 +190,13 @@ function AppointmentsManager({ onOpenSettings }) {
               <div className="appointment-times">
                 <div className="time-item">
                   <span className="label">Requested:</span>
-                  <span className="time">{formatDate(apt.requested_time)}</span>
+                  <span className="time">{formatDateTime(apt.requested_time)}</span>
                 </div>
 
                 {apt.proposed_time && (
                   <div className="time-item">
                     <span className="label">Proposed:</span>
-                    <span className="time proposed">{formatDate(apt.proposed_time)}</span>
+                    <span className="time proposed">{formatDateTime(apt.proposed_time)}</span>
                   </div>
                 )}
               </div>
@@ -215,7 +231,7 @@ function AppointmentsManager({ onOpenSettings }) {
 
                 {apt.status === 'RESCHEDULE_PROPOSED' && (
                   <p className="info-text">
-                    Waiting for customer to accept proposed time: {formatDate(apt.proposed_time)}
+                    Waiting for customer to accept proposed time: {formatDateTime(apt.proposed_time)}
                   </p>
                 )}
 
@@ -239,7 +255,7 @@ function AppointmentsManager({ onOpenSettings }) {
           <div className="modal-content">
             <h2>Propose New Time</h2>
             <p>Customer: {selectedAppointment.customer_name}</p>
-            <p>Original Time: {formatDate(selectedAppointment.requested_time)}</p>
+            <p>Original Time: {formatDateTime(selectedAppointment.requested_time)}</p>
 
             <div className="form-group">
               <label htmlFor="proposed-datetime">New Date & Time</label>

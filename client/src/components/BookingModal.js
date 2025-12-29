@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, X, AlertCircle, CheckCircle } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Clock, X, AlertCircle, CheckCircle } from 'lucide-react';
 import { appointmentsAPI } from '../services/api';
 import './BookingModal.css';
 
 function BookingModal({ isOpen, onClose, subscription, customerId, salonId }) {
   const [slots, setSlots] = useState([]);
+  const [salonTimezone, setSalonTimezone] = useState('UTC');
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [notes, setNotes] = useState('');
   const [loading, setLoading] = useState(false);
@@ -12,7 +13,7 @@ function BookingModal({ isOpen, onClose, subscription, customerId, salonId }) {
   const [success, setSuccess] = useState('');
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
-  const fetchAvailableSlots = async () => {
+  const fetchAvailableSlots = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -26,19 +27,20 @@ function BookingModal({ isOpen, onClose, subscription, customerId, salonId }) {
       
       const response = await appointmentsAPI.getAvailableSlots(salonId, 60);
       setSlots(response.data.slots || []);
+      setSalonTimezone(response.data.salonTimezone || 'UTC');
     } catch (err) {
       setError('Failed to fetch available slots. Please try again.');
       console.error('Error details:', err.response?.data || err.message);
     } finally {
       setLoading(false);
     }
-  };
+  }, [salonId]);
 
   useEffect(() => {
     if (isOpen) {
       fetchAvailableSlots();
     }
-  }, [isOpen, currentMonth]);
+  }, [isOpen, fetchAvailableSlots]);
 
   if (!isOpen) {
     return null;
@@ -82,8 +84,10 @@ function BookingModal({ isOpen, onClose, subscription, customerId, salonId }) {
   };
 
   const groupedSlots = slots.reduce((acc, slot) => {
+    // Parse the UTC time and convert to salon's timezone for proper grouping
     const date = new Date(slot.time);
-    const dateKey = date.toISOString().split('T')[0];
+    // Format date in salon's timezone to get the correct day
+    const dateKey = date.toLocaleDateString('en-CA', { timeZone: salonTimezone });
     if (!acc[dateKey]) acc[dateKey] = [];
     acc[dateKey].push(slot);
     return acc;
@@ -99,6 +103,7 @@ function BookingModal({ isOpen, onClose, subscription, customerId, salonId }) {
   const formatTime = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleTimeString('en-US', {
+      timeZone: salonTimezone,
       hour: 'numeric',
       minute: '2-digit',
       hour12: true
@@ -106,7 +111,9 @@ function BookingModal({ isOpen, onClose, subscription, customerId, salonId }) {
   };
 
   const formatDate = (dateString) => {
-    const date = new Date(dateString);
+    // dateString is now in YYYY-MM-DD format from toLocaleDateString('en-CA')
+    // Parse it as a local date (not UTC) to match the browser's interpretation
+    const date = new Date(dateString + 'T00:00:00');
     return date.toLocaleDateString('en-US', {
       weekday: 'short',
       month: 'short',

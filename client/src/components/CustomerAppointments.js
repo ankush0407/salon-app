@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Calendar, CheckCircle, Clock, X, AlertCircle } from 'lucide-react';
 import { appointmentsAPI } from '../services/api';
 import './CustomerAppointments.css';
@@ -9,11 +9,7 @@ function CustomerAppointments({ customerId }) {
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('all'); // all, pending, confirmed, reschedule_proposed
 
-  useEffect(() => {
-    fetchAppointments();
-  }, [customerId]);
-
-  const fetchAppointments = async () => {
+  const fetchAppointments = useCallback(async () => {
     try {
       setLoading(true);
       setError('');
@@ -25,7 +21,11 @@ function CustomerAppointments({ customerId }) {
     } finally {
       setLoading(false);
     }
-  };
+  }, [customerId]);
+
+  useEffect(() => {
+    fetchAppointments();
+  }, [fetchAppointments]);
 
   const handleAcceptProposal = async (appointmentId) => {
     try {
@@ -49,14 +49,27 @@ function CustomerAppointments({ customerId }) {
     }
   };
 
-  const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleString('en-US', {
+  // Format date/time in salon's timezone (same pattern as BookingModal)
+  const formatDateTime = (dateString, salonTz) => {
+    if (!dateString) return '';
+    const timezone = salonTz || 'UTC';
+    const date = new Date(dateString);
+    
+    const dateStr = date.toLocaleDateString('en-US', {
+      timeZone: timezone,
       month: 'short',
       day: 'numeric',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      year: 'numeric'
     });
+    
+    const timeStr = date.toLocaleTimeString('en-US', {
+      timeZone: timezone,
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true
+    });
+    
+    return `${dateStr}, ${timeStr}`;
   };
 
   const getStatusBadgeClass = (status) => {
@@ -135,13 +148,13 @@ function CustomerAppointments({ customerId }) {
               <div className="appointment-details">
                 <div className="detail-item">
                   <span className="label">Requested Time:</span>
-                  <span className="value">{formatDate(apt.requested_time)}</span>
+                  <span className="value">{formatDateTime(apt.requested_time, apt.salon_timezone)}</span>
                 </div>
 
                 {apt.proposed_time && (
                   <div className="detail-item">
                     <span className="label">Proposed Time:</span>
-                    <span className="value proposed">{formatDate(apt.proposed_time)}</span>
+                    <span className="value proposed">{formatDateTime(apt.proposed_time, apt.salon_timezone)}</span>
                   </div>
                 )}
 
