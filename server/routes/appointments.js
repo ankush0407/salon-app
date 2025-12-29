@@ -1,6 +1,13 @@
 const express = require('express');
 const { query: queryDb } = require('../utils/db');
 const { authenticateToken, requireOwner } = require('../middleware/auth');
+const {
+  getDateInTimezone,
+  getDayOfWeekInTimezone,
+  applyTimeToDateInTimezone,
+  getNextDayInTimezone,
+  isBefore
+} = require('../utils/timezone');
 
 const router = express.Router();
 
@@ -8,6 +15,9 @@ const router = express.Router();
  * GET /api/appointments/available-slots
  * Get available appointment slots for a customer to book
  * Query params: salonId, days (number of days to look ahead)
+ * 
+ * TIMEZONE-AWARE: Uses the salon owner's stored timezone to generate slots
+ * that match their availability settings
  */
 router.get('/available-slots', async (req, res) => {
   try {
@@ -18,6 +28,18 @@ router.get('/available-slots', async (req, res) => {
 
     const db = { query: queryDb };
     
+    // Get salon info including timezone
+    const salonResult = await db.query(
+      'SELECT timezone FROM salons WHERE id = $1',
+      [salonId]
+    );
+
+    if (salonResult.rows.length === 0) {
+      return res.status(404).json({ message: 'Salon not found' });
+    }
+
+    const salonTimezone = salonResult.rows[0].timezone || 'UTC';
+
     // Get salon availability settings
     const availability = await db.query(
       'SELECT * FROM salon_availability WHERE salon_id = $1 ORDER BY day_of_week',
@@ -37,55 +59,61 @@ router.get('/available-slots', async (req, res) => {
     );
 
     const slots = [];
+    
+    // Use the salon's timezone for all date calculations
     const now = new Date();
-    const endDate = new Date(now);
-    endDate.setDate(endDate.getDate() + parseInt(days));
+    let currentDate = new Date(now);
+    const endDateMs = now.getTime() + parseInt(days) * 24 * 60 * 60 * 1000;
 
-    // Generate available slots
-    for (let date = new Date(now); date <= endDate; date.setDate(date.getDate() + 1)) {
-      const dayOfWeek = date.getDay(); // 0 = Sunday, 1 = Monday, etc.
-      const availabilityRow = availability.rows.find(a => a.day_of_week === dayOfWeek);
+    // Generate available slots in salon's timezone
+    while (currentDate.getTime() <= endDateMs) {
+      // Get what day it is in the salon's timezone
+      const dayOfWeekInSalonTz = getDayOfWeekInTimezone(currentDate, salonTimezone);
+      const availabilityRow = availability.rows.find(a => a.day_of_week === dayOfWeekInSalonTz);
 
-      if (!availabilityRow || !availabilityRow.is_working_day) continue;
+      if (availabilityRow && availabilityRow.is_working_day) {
+        const slotDuration = availabilityRow.slot_duration || 30;
 
-      const slotDuration = availabilityRow.slot_duration || 30;
-      let slotTime = new Date(date);
-      const [hours, minutes] = availabilityRow.start_time.split(':');
-      slotTime.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+        // Apply start and end times in the salon's timezone
+        let slotTime = applyTimeToDateInTimezone(currentDate, availabilityRow.start_time, salonTimezone);
+        const endTime = applyTimeToDateInTimezone(currentDate, availabilityRow.end_time, salonTimezone);
 
-      const endTime = new Date(date);
-      const [endHours, endMinutes] = availabilityRow.end_time.split(':');
-      endTime.setHours(parseInt(endHours), parseInt(endMinutes), 0, 0);
+        // Generate slots for this day
+        while (isBefore(slotTime, endTime)) {
+          // Calculate next slot time by adding milliseconds (timezone-safe)
+          const nextSlotTime = new Date(slotTime.getTime() + slotDuration * 60 * 1000);
 
-      // Generate slots for the day
-      while (slotTime < endTime) {
-        const nextSlot = new Date(slotTime);
-        nextSlot.setMinutes(nextSlot.getMinutes() + slotDuration);
-
-        // Check if slot is confirmed or proposed
-        const isBooked = confirmedAppointments.rows.some(apt => {
-          const aptTime = new Date(apt.requested_time);
-          const proposedTime = apt.proposed_time ? new Date(apt.proposed_time) : null;
-          const checkTime = proposedTime || aptTime;
-          
-          return (
-            checkTime.getTime() === slotTime.getTime() ||
-            (checkTime > slotTime && checkTime < nextSlot)
-          );
-        });
-
-        if (!isBooked) {
-          slots.push({
-            time: slotTime.toISOString(),
-            available: true
+          // Check if slot is confirmed or booked
+          const isBooked = confirmedAppointments.rows.some(apt => {
+            const aptTime = new Date(apt.requested_time);
+            const proposedTime = apt.proposed_time ? new Date(apt.proposed_time) : null;
+            const checkTime = proposedTime || aptTime;
+            
+            return (
+              checkTime.getTime() === slotTime.getTime() ||
+              (checkTime > slotTime && checkTime < nextSlotTime)
+            );
           });
-        }
 
-        slotTime = nextSlot;
+          if (!isBooked) {
+            slots.push({
+              time: slotTime.toISOString(),
+              available: true
+            });
+          }
+
+          slotTime = nextSlotTime;
+        }
       }
+
+      // Move to next day
+      currentDate = getNextDayInTimezone(currentDate, salonTimezone);
     }
 
-    res.json({ slots });
+    res.json({ 
+      slots,
+      salonTimezone // Include salon timezone in response
+    });
   } catch (error) {
     console.error('Error fetching available slots:', error);
     res.status(500).json({ message: 'Failed to fetch available slots' });
@@ -102,6 +130,13 @@ router.get('/owner', [authenticateToken, requireOwner], async (req, res) => {
     const { status } = req.query;
 
     const db = { query: queryDb };
+    
+    // Get salon timezone
+    const salonResult = await db.query(
+      'SELECT timezone FROM salons WHERE id = $1',
+      [salonId]
+    );
+    const salonTimezone = salonResult.rows[0]?.timezone || 'UTC';
     
     let query = `
       SELECT 
@@ -128,7 +163,10 @@ router.get('/owner', [authenticateToken, requireOwner], async (req, res) => {
     query += ` ORDER BY a.requested_time DESC`;
 
     const result = await db.query(query, params);
-    res.json({ appointments: result.rows });
+    res.json({ 
+      appointments: result.rows,
+      salonTimezone
+    });
   } catch (error) {
     console.error('Error fetching appointments:', error);
     res.status(500).json({ message: 'Failed to fetch appointments' });
@@ -148,6 +186,7 @@ router.get('/customer/:customerId', async (req, res) => {
       `SELECT 
         a.*, 
         s.name as salon_name,
+        s.timezone as salon_timezone,
         st.name as subscription_type
       FROM appointments a
       JOIN salons s ON a.salon_id = s.id

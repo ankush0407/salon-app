@@ -8,9 +8,12 @@ CREATE TABLE salons (
   salon_image_url TEXT,
   stripe_customer_id VARCHAR(255),
   subscription_status VARCHAR(50) DEFAULT 'inactive',
+  timezone VARCHAR(255) NOT NULL DEFAULT 'UTC',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   is_active BOOLEAN NOT NULL DEFAULT true
 );
+
+CREATE INDEX idx_salons_timezone ON salons(timezone);
 
 -- Users table with salon association
 CREATE TABLE users (

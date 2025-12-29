@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { authAPI } from '../services/api';
 import { CustomerLoginScreen } from './CustomerPortal';
 import { Package, User } from 'lucide-react';
+import { detectUserTimezone } from '../utils/timezone';
 
 
 function LoginScreen({ onLogin }) {
@@ -12,7 +13,14 @@ function LoginScreen({ onLogin }) {
     const [salonName, setSalonName] = useState('');
     const [salonPhone, setSalonPhone] = useState('');
     const [salonAddress, setSalonAddress] = useState('');
+    const [timezone, setTimezone] = useState('UTC');
     const [loading, setLoading] = useState(false);
+
+    // Detect user's timezone on component mount
+    useEffect(() => {
+      const detectedTz = detectUserTimezone();
+      setTimezone(detectedTz);
+    }, []);
   
     const handleLogin = async () => {
       if (!email || !password) {
@@ -45,7 +53,7 @@ function LoginScreen({ onLogin }) {
       
       setLoading(true);
       try {
-        const response = await authAPI.registerSalon(salonName, email, salonPhone, salonAddress, password);
+        const response = await authAPI.registerSalon(salonName, email, salonPhone, salonAddress, password, timezone);
         const { token, user } = response.data;
         
         localStorage.setItem('token', token);
@@ -191,6 +199,17 @@ function LoginScreen({ onLogin }) {
                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                   />
                 </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Timezone</label>
+                  <input
+                    type="text"
+                    value={timezone}
+                    readOnly
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg bg-gray-100 text-gray-600"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Auto-detected from your browser</p>
+                </div>
               </>
             )}
   
@@ -234,6 +253,10 @@ function LoginScreen({ onLogin }) {
                 setSalonName('');
                 setSalonPhone('');
                 setSalonAddress('');
+                // Reset timezone to detected value when toggling registration
+                if (!isRegistering) {
+                  setTimezone(detectUserTimezone());
+                }
               }}
               className="w-full text-purple-600 py-2 font-medium hover:text-purple-700 transition-colors"
             >

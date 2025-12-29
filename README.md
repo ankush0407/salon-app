@@ -22,6 +22,14 @@ Production-ready multi-tenant salon management system with appointment booking, 
 ✅ **Available Slots Calendar** - Customers see available times based on salon hours
 ✅ **Negotiation Workflow** - Owners can propose alternative times
 ✅ **Status Tracking** - PENDING → CONFIRMED, RESCHEDULE_PROPOSED workflows
+✅ **Timezone Support** - Full timezone awareness for global operations
+
+### 🌍 Timezone Support (NEW)
+✅ **Salon Timezone Detection** - Auto-detect or manually select from 457 IANA timezones
+✅ **Timezone-Aware Slots** - Appointments generated in salon's local time
+✅ **Correct Day Display** - Slots appear on correct days regardless of customer location
+✅ **DST Handling** - Automatic daylight saving time adjustments
+✅ **Global Coverage** - Supports all timezones worldwide
 
 ### 💳 Subscription Management
 ✅ **Multiple Salon Owners** - Each owner manages their own salon
@@ -104,37 +112,83 @@ npm start
 
 ## 📚 Documentation
 
-### New Documentation (Multi-Tenant)
+### Core Documentation
 
-1. **[QUICK_REFERENCE.md](./QUICK_REFERENCE.md)** ⭐ START HERE
+1. **[DOCUMENTATION.md](./DOCUMENTATION.md)** ⭐ COMPLETE TECHNICAL DOCS
+   - **Timezone Support** - Full timezone feature documentation
+   - API Reference
+   - Database Schema
+   - Deployment Guide
+   - Troubleshooting
+
+2. **[QUICK_REFERENCE.md](./QUICK_REFERENCE.md)** ⭐ QUICK START
    - What changed
    - Key endpoints
    - Common errors
    - Testing commands
 
-2. **[MULTI_TENANT_IMPLEMENTATION.md](./MULTI_TENANT_IMPLEMENTATION.md)**
+### Feature-Specific Documentation
+
+3. **[MULTI_TENANT_IMPLEMENTATION.md](./MULTI_TENANT_IMPLEMENTATION.md)**
    - Technical architecture
    - Database schema details
    - All file changes
    - Security features
 
-3. **[MULTI_TENANT_TESTING.md](./MULTI_TENANT_TESTING.md)**
+4. **[MULTI_TENANT_TESTING.md](./MULTI_TENANT_TESTING.md)**
    - 7 detailed test scenarios
    - Step-by-step instructions
    - Expected results
    - Troubleshooting guide
 
-4. **[MULTI_TENANT_SUMMARY.md](./MULTI_TENANT_SUMMARY.md)**
+5. **[MULTI_TENANT_SUMMARY.md](./MULTI_TENANT_SUMMARY.md)**
    - Executive summary
    - Changes overview
    - Architecture diagram
    - Next steps
 
-5. **[IMPLEMENTATION_CHECKLIST.md](./IMPLEMENTATION_CHECKLIST.md)**
+6. **[IMPLEMENTATION_CHECKLIST.md](./IMPLEMENTATION_CHECKLIST.md)**
    - Code implementation status
    - Testing checklist
    - Deployment checklist
    - Success indicators
+
+## 🌍 Timezone Feature
+
+The application includes comprehensive timezone support for salons operating in different timezones.
+
+### Key Capabilities
+- **Auto-Detection:** Automatically detects salon's timezone during registration
+- **Manual Selection:** Choose from 457 IANA timezones worldwide
+- **Smart Slot Generation:** Appointment slots generated in salon's local time
+- **Correct Day Display:** Monday slots always appear on Monday, regardless of customer location
+- **DST Support:** Automatic daylight saving time handling
+
+### For Salon Owners
+1. **During Registration:**
+   - System auto-detects your timezone
+   - Or manually select from dropdown
+
+2. **Update Anytime:**
+   - Go to Business Profile
+   - Change timezone setting
+   - All future slots use new timezone
+
+3. **Set Availability:**
+   - Configure hours in your local time
+   - System handles conversion automatically
+
+### For Customers
+- View slots in your browser's timezone
+- Slots grouped by salon's local days
+- No confusion about time zones
+
+### Technical Details
+See [DOCUMENTATION.md - Timezone Support](./DOCUMENTATION.md#timezone-support) for:
+- Architecture overview
+- API examples
+- Utility function reference
+- Troubleshooting guide
 
 ## 🚀 Getting Started as a Salon Owner
 

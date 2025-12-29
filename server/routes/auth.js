@@ -12,13 +12,29 @@ const generateToken = (user, salonId) =>
     { expiresIn: '7d' }
   );
 
+// Helper: Validate IANA timezone
+const isValidTimezone = (timezone) => {
+  try {
+    Intl.DateTimeFormat(undefined, { timeZone: timezone });
+    return true;
+  } catch (error) {
+    return false;
+  }
+};
+
 // Register Salon
 router.post('/register-salon', async (req, res) => {
   try {
-    const { name, email, password, phone, address } = req.body;
+    const { name, email, password, phone, address, timezone } = req.body;
     
     if (!name || !email || !password) {
       return res.status(400).json({ message: 'Salon name, email, and password are required' });
+    }
+    
+    // Validate timezone if provided
+    let salonTimezone = timezone || 'UTC';
+    if (!isValidTimezone(salonTimezone)) {
+      return res.status(400).json({ message: 'Invalid timezone provided' });
     }
     
     // Check if email already exists
@@ -27,10 +43,10 @@ router.post('/register-salon', async (req, res) => {
       return res.status(400).json({ message: 'This email is already registered' });
     }
     
-    // Create salon and owner user
+    // Create salon and owner user with timezone
     const { rows: salonRows } = await db.query(
-      'INSERT INTO salons (name, email, phone, address) VALUES ($1, $2, $3, $4) RETURNING id, name, email',
-      [name, email, phone || null, address || null]
+      'INSERT INTO salons (name, email, phone, address, timezone) VALUES ($1, $2, $3, $4, $5) RETURNING id, name, email, timezone',
+      [name, email, phone || null, address || null, salonTimezone]
     );
     
     const salon = salonRows[0];
@@ -47,7 +63,7 @@ router.post('/register-salon', async (req, res) => {
     res.status(201).json({ 
       token,
       message: 'Salon registered successfully',
-      user: { id: user.id, email: user.email, role: user.role, salon_id: salon.id, salon_name: salon.name }
+      user: { id: user.id, email: user.email, role: user.role, salon_id: salon.id, salon_name: salon.name, timezone: salon.timezone }
     });
   } catch (error) {
     console.error('Registration error:', error);

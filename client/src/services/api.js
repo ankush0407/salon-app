@@ -23,8 +23,8 @@ api.interceptors.request.use(
 );
 
 export const authAPI = {
-  registerSalon: (name, email, phone, address, password) => 
-    api.post('/auth/register-salon', { name, email, phone, address, password }),
+  registerSalon: (name, email, phone, address, password, timezone) => 
+    api.post('/auth/register-salon', { name, email, phone, address, password, timezone }),
   login: (email, password) => 
     api.post('/auth/login', { email, password }),
 };
