@@ -31,6 +31,8 @@ app.use('/api/subscription-types', require('./routes/subscriptionTypes'));
 app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/customer', require('./routes/customer'));
 app.use('/api/profile', require('./routes/profile'));
+app.use('/api/appointments', require('./routes/appointments'));
+app.use('/api/availability', require('./routes/availability'));
 
 // Health check
 app.get('/', (req, res) => res.json({ message: 'Salon API running' }));

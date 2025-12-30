@@ -1,18 +1,66 @@
-# 🎨 Salon Tracker - Multi-Tenant Implementation
+# 🎨 MarkMyVisit - Salon Appointment & Subscription Management
 
-A multi-tenant subscription management system for salon owners to track customers, manage subscription packages, and log service visits.
+Production-ready multi-tenant salon management system with appointment booking, subscription management, and owner/customer portals.
 
-## ✨ What's New: Multi-Tenant Support
+**Status:** ✅ Production Ready v1.0
 
-The application now supports **multiple independent salon owners** on the same platform with complete data isolation.
+## Table of Contents
 
-### Key Features
+1. [Features](#features)
+2. [Quick Start](#quick-start)
+3. [Architecture](#architecture)
+4. [Technology Stack](#technology-stack)
+5. [Installation & Setup](#installation--setup)
+6. [Appointment Booking System](#appointment-booking-system)
+7. [API Quick Reference](#api-quick-reference)
+8. [Deployment](#deployment)
+9. [Troubleshooting](#troubleshooting)
 
-✅ **Multiple Salon Owners** - Each owner registers their own salon account
-✅ **Complete Data Isolation** - Customers, subscriptions, packages are salon-specific  
-✅ **Secure Authentication** - JWT-based authentication with salon context
-✅ **Email Reuse** - Same email can be used by different salon owners
-✅ **Scalable Architecture** - Unlimited salon owners supported
+### 📅 Appointment Booking Module (NEW)
+✅ **Soft Booking System** - Request-confirm workflow for appointments
+✅ **Owner Availability Management** - Set working days, hours, and slot duration
+✅ **Available Slots Calendar** - Customers see available times based on salon hours
+✅ **Negotiation Workflow** - Owners can propose alternative times
+✅ **Status Tracking** - PENDING → CONFIRMED, RESCHEDULE_PROPOSED workflows
+✅ **Timezone Support** - Full timezone awareness for global operations
+
+### 🌍 Timezone Support (NEW)
+✅ **Salon Timezone Detection** - Auto-detect or manually select from 457 IANA timezones
+✅ **Timezone-Aware Slots** - Appointments generated in salon's local time
+✅ **Correct Day Display** - Slots appear on correct days regardless of customer location
+✅ **DST Handling** - Automatic daylight saving time adjustments
+✅ **Global Coverage** - Supports all timezones worldwide
+
+### 💳 Subscription Management
+✅ **Multiple Salon Owners** - Each owner manages their own salon
+✅ **Subscription Packages** - Create custom subscription types
+✅ **Visit Tracking** - Log and manage customer visits
+✅ **Complete Data Isolation** - Secure multi-tenant architecture
+✅ **Subscription Progress** - Visual progress tracking for customers
+
+### 🔐 Security
+✅ **JWT Authentication** - Secure owner authentication
+✅ **Clerk Integration** - Customer sign-in via email codes
+✅ **Role-Based Access** - Owner vs Customer permissions
+
+## 🎯 New in v1.0: Appointment Booking
+
+See [APPOINTMENT_BOOKING_IMPLEMENTATION.md](./APPOINTMENT_BOOKING_IMPLEMENTATION.md) for complete documentation.
+
+### Quick Feature Overview
+
+**For Salon Owners:**
+- Configure working hours, days, and slot duration in "Availability Settings"
+- View and manage appointment requests in "Appointments" manager
+- Confirm bookings or propose alternative times
+- Track appointment status changes
+
+**For Customers:**
+- Click "Book Visit" on any active subscription
+- Browse available time slots in an interactive calendar
+- Add optional notes to appointment requests
+- Accept or decline proposed times
+- View complete appointment history
 
 ## Quick Start
 
@@ -21,6 +69,7 @@ The application now supports **multiple independent salon owners** on the same p
 - **Node.js** v14+
 - **PostgreSQL** (or Neon for cloud)
 - **npm** or **yarn**
+- **Clerk Account** (for customer authentication)
 
 ### 1. Setup Database
 
@@ -28,7 +77,7 @@ The application now supports **multiple independent salon owners** on the same p
 # Create PostgreSQL database
 createdb salon_tracker
 
-# Run schema
+# Run schema (includes new appointment booking tables)
 psql -U username -d salon_tracker -f server/schema.sql
 ```
 
@@ -63,37 +112,83 @@ npm start
 
 ## 📚 Documentation
 
-### New Documentation (Multi-Tenant)
+### Core Documentation
 
-1. **[QUICK_REFERENCE.md](./QUICK_REFERENCE.md)** ⭐ START HERE
+1. **[DOCUMENTATION.md](./DOCUMENTATION.md)** ⭐ COMPLETE TECHNICAL DOCS
+   - **Timezone Support** - Full timezone feature documentation
+   - API Reference
+   - Database Schema
+   - Deployment Guide
+   - Troubleshooting
+
+2. **[QUICK_REFERENCE.md](./QUICK_REFERENCE.md)** ⭐ QUICK START
    - What changed
    - Key endpoints
    - Common errors
    - Testing commands
 
-2. **[MULTI_TENANT_IMPLEMENTATION.md](./MULTI_TENANT_IMPLEMENTATION.md)**
+### Feature-Specific Documentation
+
+3. **[MULTI_TENANT_IMPLEMENTATION.md](./MULTI_TENANT_IMPLEMENTATION.md)**
    - Technical architecture
    - Database schema details
    - All file changes
    - Security features
 
-3. **[MULTI_TENANT_TESTING.md](./MULTI_TENANT_TESTING.md)**
+4. **[MULTI_TENANT_TESTING.md](./MULTI_TENANT_TESTING.md)**
    - 7 detailed test scenarios
    - Step-by-step instructions
    - Expected results
    - Troubleshooting guide
 
-4. **[MULTI_TENANT_SUMMARY.md](./MULTI_TENANT_SUMMARY.md)**
+5. **[MULTI_TENANT_SUMMARY.md](./MULTI_TENANT_SUMMARY.md)**
    - Executive summary
    - Changes overview
    - Architecture diagram
    - Next steps
 
-5. **[IMPLEMENTATION_CHECKLIST.md](./IMPLEMENTATION_CHECKLIST.md)**
+6. **[IMPLEMENTATION_CHECKLIST.md](./IMPLEMENTATION_CHECKLIST.md)**
    - Code implementation status
    - Testing checklist
    - Deployment checklist
    - Success indicators
+
+## 🌍 Timezone Feature
+
+The application includes comprehensive timezone support for salons operating in different timezones.
+
+### Key Capabilities
+- **Auto-Detection:** Automatically detects salon's timezone during registration
+- **Manual Selection:** Choose from 457 IANA timezones worldwide
+- **Smart Slot Generation:** Appointment slots generated in salon's local time
+- **Correct Day Display:** Monday slots always appear on Monday, regardless of customer location
+- **DST Support:** Automatic daylight saving time handling
+
+### For Salon Owners
+1. **During Registration:**
+   - System auto-detects your timezone
+   - Or manually select from dropdown
+
+2. **Update Anytime:**
+   - Go to Business Profile
+   - Change timezone setting
+   - All future slots use new timezone
+
+3. **Set Availability:**
+   - Configure hours in your local time
+   - System handles conversion automatically
+
+### For Customers
+- View slots in your browser's timezone
+- Slots grouped by salon's local days
+- No confusion about time zones
+
+### Technical Details
+See [DOCUMENTATION.md - Timezone Support](./DOCUMENTATION.md#timezone-support) for:
+- Architecture overview
+- API examples
+- Utility function reference
+- Troubleshooting guide
 
 ## 🚀 Getting Started as a Salon Owner
 

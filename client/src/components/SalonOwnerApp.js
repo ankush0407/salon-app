@@ -2,8 +2,10 @@ import React, { useState } from 'react';
 import SalonNavigation from './SalonNavigation';
 import Dashboard from './Dashboard';
 import OwnerPortal from './OwnerPortal';
-import Subscriptions from './Subscriptions';
 import Profile from './Profile';
+import Subscriptions from './Subscriptions';
+import AppointmentsManager from './AppointmentsManager';
+import AvailabilitySettings from './AvailabilitySettings';
 import './SalonOwnerApp.css';
 
 function SalonOwnerApp({ onLogout }) {
@@ -13,6 +15,7 @@ function SalonOwnerApp({ onLogout }) {
     dashboard: <Dashboard onBack={() => {}} />,
     customers: <OwnerPortal onLogout={onLogout} setShowDashboard={() => setActiveView('dashboard')} />,
     subscriptions: <Subscriptions />,
+    appointments: <AppointmentsManager onOpenSettings={() => setActiveView('availability')} />,
     profile: <Profile />
   };
 
@@ -20,7 +23,11 @@ function SalonOwnerApp({ onLogout }) {
     <div className="salon-owner-app">
       <SalonNavigation activeView={activeView} setActiveView={setActiveView} onLogout={onLogout} />
       <main className="main-content">
-        {views[activeView] || views.dashboard}
+        {activeView === 'availability' ? (
+          <AvailabilitySettings onBack={() => setActiveView('appointments')} />
+        ) : (
+          views[activeView] || views.dashboard
+        )}
       </main>
     </div>
   );

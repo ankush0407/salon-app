@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Upload, Save, AlertCircle, CheckCircle, Loader, Download, X } from 'lucide-react';
 import api from '../services/api';
+import { getTimezoneList, formatTimezoneForDisplay } from '../utils/timezone';
 import './Profile.css';
 
 function Profile() {
@@ -8,9 +9,11 @@ function Profile() {
   const [salonName, setSalonName] = useState('');
   const [phone, setPhone] = useState('');
   const [email, setEmail] = useState('');
+  const [timezone, setTimezone] = useState('UTC');
   const [salonImage, setSalonImage] = useState(null);
   const [imagePreview, setImagePreview] = useState('');
   const [currentImageUrl, setCurrentImageUrl] = useState('');
+  const [timezoneList, setTimezoneList] = useState([]);
 
   // Subscription state
   const [subscriptionStatus, setSubscriptionStatus] = useState('inactive');
@@ -28,6 +31,10 @@ function Profile() {
     fetchProfileData();
     fetchInvoices();
     
+    // Load timezone list
+    const tzList = getTimezoneList();
+    setTimezoneList(tzList);
+    
     // Check if user just completed a payment (redirect from Stripe)
     const urlParams = new URLSearchParams(window.location.search);
     if (urlParams.get('payment_success')) {
@@ -39,9 +46,7 @@ function Profile() {
       // First, sync the Stripe customer ID
       const syncCustomer = async () => {
         try {
-          console.log('🔄 Frontend: Starting sync-stripe-customer POST call...');
           const syncResponse = await api.post('/profile/sync-stripe-customer');
-          console.log('✅ Frontend: Synced Stripe customer:', syncResponse.data);
           
           // Then refresh invoices
           setTimeout(() => {
@@ -88,6 +93,7 @@ function Profile() {
       setSalonName(response.data.name);
       setPhone(response.data.phone || '');
       setEmail(response.data.email || '');
+      setTimezone(response.data.timezone || 'UTC');
       setCurrentImageUrl(response.data.salon_image_url || '');
       setSubscriptionStatus(response.data.subscription_status || 'inactive');
       setMessage({ type: '', text: '' });
@@ -151,6 +157,7 @@ function Profile() {
       formData.append('name', salonName);
       formData.append('phone', phone);
       formData.append('email', email);
+      formData.append('timezone', timezone);
       
       if (salonImage) {
         formData.append('salonImage', salonImage);
@@ -167,6 +174,7 @@ function Profile() {
       setSalonName(response.data.name);
       setPhone(response.data.phone || '');
       setEmail(response.data.email || '');
+      setTimezone(response.data.timezone || 'UTC');
       setCurrentImageUrl(response.data.salon_image_url || '');
       setSalonImage(null);
       setImagePreview('');
@@ -331,6 +339,27 @@ function Profile() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter email"
               />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="timezone">Salon Timezone</label>
+              <select
+                id="timezone"
+                value={timezone}
+                onChange={(e) => setTimezone(e.target.value)}
+                className="timezone-select"
+              >
+                {timezoneList.length > 0 ? (
+                  timezoneList.map((tz) => (
+                    <option key={tz} value={tz}>
+                      {formatTimezoneForDisplay(tz)}
+                    </option>
+                  ))
+                ) : (
+                  <option value="UTC">UTC</option>
+                )}
+              </select>
+              <p className="field-help-text">The timezone for your salon&apos;s availability and appointments</p>
             </div>
 
             <button

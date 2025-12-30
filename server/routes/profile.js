@@ -41,7 +41,7 @@ router.get('/', async (req, res) => {
     }
 
     const { rows } = await db.query(
-      'SELECT id, name, phone, email, salon_image_url, subscription_status, stripe_customer_id FROM salons WHERE id = $1',
+      'SELECT id, name, phone, email, salon_image_url, subscription_status, stripe_customer_id, timezone FROM salons WHERE id = $1',
       [salonId]
     );
 
@@ -68,10 +68,19 @@ router.put('/', upload.single('salonImage'), async (req, res) => {
       return res.status(401).json({ error: 'Unauthorized' });
     }
 
-    const { name, phone, email } = req.body;
+    const { name, phone, email, timezone } = req.body;
 
     if (!name || !name.trim()) {
       return res.status(400).json({ error: 'Salon name is required' });
+    }
+
+    // Validate timezone if provided
+    if (timezone) {
+      try {
+        Intl.DateTimeFormat(undefined, { timeZone: timezone });
+      } catch (error) {
+        return res.status(400).json({ error: 'Invalid timezone provided' });
+      }
     }
 
     // Get current salon data to preserve image URL if not updated
@@ -91,10 +100,10 @@ router.put('/', upload.single('salonImage'), async (req, res) => {
 
     const { rows } = await db.query(
       `UPDATE salons 
-       SET name = $1, phone = $2, email = $3, salon_image_url = $4 
-       WHERE id = $5 
-       RETURNING id, name, phone, email, salon_image_url, subscription_status, stripe_customer_id`,
-      [name.trim(), phone || null, email || null, salonImageUrl, salonId]
+       SET name = $1, phone = $2, email = $3, salon_image_url = $4, timezone = $5 
+       WHERE id = $6 
+       RETURNING id, name, phone, email, salon_image_url, subscription_status, stripe_customer_id, timezone`,
+      [name.trim(), phone || null, email || null, salonImageUrl, timezone || 'UTC', salonId]
     );
 
     if (rows.length === 0) {

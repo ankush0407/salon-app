@@ -23,8 +23,8 @@ api.interceptors.request.use(
 );
 
 export const authAPI = {
-  registerSalon: (name, email, phone, address, password) => 
-    api.post('/auth/register-salon', { name, email, phone, address, password }),
+  registerSalon: (name, email, phone, address, password, timezone) => 
+    api.post('/auth/register-salon', { name, email, phone, address, password, timezone }),
   login: (email, password) => 
     api.post('/auth/login', { email, password }),
 };
@@ -49,6 +49,34 @@ export const subscriptionTypesAPI = {
   getAll: () => api.get('/subscription-types'),
   create: (typeData) => api.post('/subscription-types', typeData),
   delete: (typeId) => api.delete(`/subscription-types/${typeId}`),
+};
+
+export const appointmentsAPI = {
+  getAvailableSlots: (salonId, days) => 
+    api.get('/appointments/available-slots', { params: { salonId, days } }),
+  getForOwner: (status) => 
+    api.get('/appointments/owner', { params: status ? { status } : {} }),
+  getForCustomer: (customerId) => 
+    api.get(`/appointments/customer/${customerId}`),
+  create: (appointmentData) => 
+    api.post('/appointments', appointmentData),
+  confirm: (appointmentId) => 
+    api.patch(`/appointments/${appointmentId}/confirm`),
+  proposeNewTime: (appointmentId, proposedTime) => 
+    api.patch(`/appointments/${appointmentId}/propose`, { proposedTime }),
+  acceptProposal: (appointmentId) => 
+    api.patch(`/appointments/${appointmentId}/accept-proposal`),
+  cancel: (appointmentId) => 
+    api.patch(`/appointments/${appointmentId}/cancel`),
+};
+
+export const availabilityAPI = {
+  getForSalon: (salonId) => 
+    api.get(`/availability/${salonId}`),
+  updateSettings: (availabilitySettings) => 
+    api.post('/availability', { availabilitySettings }),
+  updateSingle: (settingId, updates) => 
+    api.patch(`/availability/${settingId}`, updates),
 };
 
 export default api;

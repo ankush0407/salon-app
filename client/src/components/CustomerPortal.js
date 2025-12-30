@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { useSignIn, useAuth, useUser } from '@clerk/clerk-react';
-import { Package, LogOut, ArrowLeft, User } from 'lucide-react';
+import { Package, LogOut, ArrowLeft, User, Calendar } from 'lucide-react';
+import BookingModal from './BookingModal';
+import CustomerAppointments from './CustomerAppointments';
 
 /**
  * CustomerLoginScreen Component - Custom Sign-In Flow
@@ -190,6 +192,9 @@ export function CustomerPortalApp({ clerkUser, onLogout }) {
   const [detailLoading, setDetailLoading] = useState(false);
   const [error, setError] = useState(null);
   const [selectedSubscription, setSelectedSubscription] = useState(null);
+  const [bookingSubscription, setBookingSubscription] = useState(null);
+  const [showBookingModal, setShowBookingModal] = useState(false);
+  const [viewAppointments, setViewAppointments] = useState(false);
 
   const { getToken, signOut } = useAuth();
 
@@ -303,6 +308,26 @@ export function CustomerPortalApp({ clerkUser, onLogout }) {
     );
   }
 
+  // Appointments view
+  if (viewAppointments && customer) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
+        <div className="max-w-6xl mx-auto p-4 py-8">
+          <div className="mb-6">
+            <button
+              onClick={() => setViewAppointments(false)}
+              className="text-purple-600 hover:text-purple-700 flex items-center gap-2 font-medium transition-colors"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back to Subscriptions
+            </button>
+          </div>
+          <CustomerAppointments customerId={customer.id} />
+        </div>
+      </div>
+    );
+  }
+
   // Subscription detail view
   if (selectedSubscription) {
     const visits = selectedSubscription.visits || [];
@@ -371,6 +396,35 @@ export function CustomerPortalApp({ clerkUser, onLogout }) {
               Visit History
             </h3>
             
+            <div className="flex gap-4 mb-8">
+              <button
+                onClick={() => {
+                  if (selectedSubscription && !detailLoading) {
+                    setBookingSubscription(selectedSubscription);
+                    setShowBookingModal(true);
+                  } else if (!selectedSubscription) {
+                    setError('Please select a subscription first');
+                  }
+                }}
+                disabled={!selectedSubscription || detailLoading}
+                className="flex-1 py-3 px-4 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 transition-all font-semibold shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Calendar className="w-5 h-5 inline mr-2" />
+                {detailLoading ? 'Loading...' : 'Book Visit'}
+              </button>
+              <button
+                onClick={() => setSelectedSubscription(null)}
+                className="py-3 px-6 bg-gray-100 text-gray-700 rounded-xl hover:bg-gray-200 transition-all font-semibold"
+              >
+                Back
+              </button>
+            </div>
+
+            <h3 className="text-xl font-bold text-gray-900 mb-5 flex items-center gap-2">
+              <Package className="w-5 h-5 text-purple-600" />
+              Visit History
+            </h3>
+            
             {detailLoading ? (
               <div className="text-center py-12">
                 <div className="w-12 h-12 border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin mx-auto mb-4"></div>
@@ -423,6 +477,17 @@ export function CustomerPortalApp({ clerkUser, onLogout }) {
             )}
           </div>
         </div>
+
+        <BookingModal
+          isOpen={showBookingModal}
+          onClose={() => {
+            setShowBookingModal(false);
+            setBookingSubscription(null);
+          }}
+          subscription={bookingSubscription}
+          customerId={customer?.id}
+          salonId={bookingSubscription?.salonId}
+        />
       </div>
     );
   }
@@ -438,13 +503,22 @@ export function CustomerPortalApp({ clerkUser, onLogout }) {
             </div>
             <h1 className="text-xl font-bold text-gray-900">My Subscriptions</h1>
           </div>
-          <button
-            onClick={() => signOut({ redirectUrl: '/' })}
-            className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all font-medium"
-          >
-            <LogOut className="w-5 h-5" />
-            <span className="hidden sm:inline">Sign Out</span>
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setViewAppointments(true)}
+              className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all font-medium"
+            >
+              <Calendar className="w-5 h-5" />
+              <span className="hidden sm:inline">Appointments</span>
+            </button>
+            <button
+              onClick={() => signOut({ redirectUrl: '/' })}
+              className="flex items-center gap-2 px-4 py-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-all font-medium"
+            >
+              <LogOut className="w-5 h-5" />
+              <span className="hidden sm:inline">Sign Out</span>
+            </button>
+          </div>
         </div>
       </nav>
 

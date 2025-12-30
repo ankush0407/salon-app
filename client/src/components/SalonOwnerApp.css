@@ -6,9 +6,6 @@
 .main-content {
   flex-grow: 1;
   padding: 1rem;
-  overflow-y: auto;
-  /* Add padding at the bottom to avoid content being hidden by the mobile nav */
-  padding-bottom: 80px; 
 }
 
 .main-content-header {
@@ -38,8 +35,7 @@
   }
 
   .main-content {
-    padding-bottom: 90px;
-    overflow-y: auto;
-    flex-grow: 1;
+    padding-top: 1.5rem;
+    padding-bottom: 1rem;
   }
 }
