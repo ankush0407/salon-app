@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Calendar, Save, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Calendar, Save, AlertCircle, ArrowLeft, ChevronRight, Clock } from 'lucide-react';
 import { availabilityAPI } from '../services/api';
 import './AvailabilitySettings.css';
 
@@ -9,8 +9,10 @@ function AvailabilitySettings({ onBack }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const [expandedId, setExpandedId] = useState(null);
 
   const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+  const dayAbbreviations = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
   
   // Get salonId from localStorage (set during owner login)
   const user = JSON.parse(localStorage.getItem('user') || '{}');
@@ -127,72 +129,106 @@ function AvailabilitySettings({ onBack }) {
         </div>
       )}
 
-      <div className="availability-table">
-        <div className="table-header">
-          <div className="col-day">Day</div>
-          <div className="col-working">Working</div>
-          <div className="col-time">Start Time</div>
-          <div className="col-time">End Time</div>
-          <div className="col-duration">Slot Duration (min)</div>
-        </div>
+      <div className="availability-list-view">
+        {availability.map((item, index) => {
+          const isExpanded = expandedId === item.dayOfWeek;
+          
+          return (
+            <div key={item.dayOfWeek} className={`availability-row ${isExpanded ? 'expanded' : ''}`}>
+              <div className="row-main" onClick={() => setExpandedId(isExpanded ? null : item.dayOfWeek)}>
+                {/* Day Box */}
+                <div className="day-box">
+                  <div className="day-abbr">{dayAbbreviations[item.dayOfWeek]}</div>
+                </div>
 
-        <div className="table-body">
-          {availability.map((item, index) => (
-            <div key={item.dayOfWeek} className="table-row">
-              <div className="col-day">
-                <span className="day-label">{item.dayName}</span>
-              </div>
-              
-              <div className="col-working">
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={item.isWorkingDay}
-                    onChange={(e) => handleAvailabilityChange(index, 'isWorkingDay', e.target.checked)}
-                    className="checkbox-input"
-                  />
-                  <span className="checkbox-custom"></span>
-                </label>
-              </div>
+                {/* Main Info */}
+                <div className="row-info">
+                  <div className="info-primary">
+                    <span className="day-name">{item.dayName}</span>
+                    <span className={`status-badge ${item.isWorkingDay ? 'status-open' : 'status-closed'}`}>
+                      {item.isWorkingDay ? 'Open' : 'Closed'}
+                    </span>
+                  </div>
+                  <div className="info-secondary">
+                    {item.isWorkingDay && item.startTime && item.endTime ? (
+                      <>
+                        <Clock size={14} />
+                        <span className="time-range">{item.startTime} - {item.endTime}</span>
+                        <span className="dot">•</span>
+                        <span className="slot-duration">{item.slotDuration} min slots</span>
+                      </>
+                    ) : (
+                      <span className="no-hours">No working hours set</span>
+                    )}
+                  </div>
+                </div>
 
-              <div className="col-time">
-                <input
-                  type="time"
-                  value={item.startTime || ''}
-                  onChange={(e) => handleAvailabilityChange(index, 'startTime', e.target.value)}
-                  disabled={!item.isWorkingDay}
-                  className="time-input"
-                />
-              </div>
-
-              <div className="col-time">
-                <input
-                  type="time"
-                  value={item.endTime || ''}
-                  onChange={(e) => handleAvailabilityChange(index, 'endTime', e.target.value)}
-                  disabled={!item.isWorkingDay}
-                  className="time-input"
-                />
+                {/* Chevron */}
+                <div className="row-action">
+                  <ChevronRight className={`chevron-icon ${isExpanded ? 'rotated' : ''}`} size={20} />
+                </div>
               </div>
 
-              <div className="col-duration">
-                <select
-                  value={item.slotDuration}
-                  onChange={(e) => handleAvailabilityChange(index, 'slotDuration', e.target.value)}
-                  disabled={!item.isWorkingDay}
-                  className="duration-select"
-                >
-                  <option value="15">15</option>
-                  <option value="30">30</option>
-                  <option value="45">45</option>
-                  <option value="60">60</option>
-                  <option value="90">90</option>
-                  <option value="120">120</option>
-                </select>
-              </div>
+              {/* Expanded Details */}
+              {isExpanded && (
+                <div className="row-expanded">
+                  <div className="expanded-section">
+                    <div className="section-label">Working Day</div>
+                    <label className="toggle-switch">
+                      <input
+                        type="checkbox"
+                        checked={item.isWorkingDay}
+                        onChange={(e) => handleAvailabilityChange(index, 'isWorkingDay', e.target.checked)}
+                      />
+                      <span className="toggle-slider"></span>
+                      <span className="toggle-label">{item.isWorkingDay ? 'Open' : 'Closed'}</span>
+                    </label>
+                  </div>
+
+                  {item.isWorkingDay && (
+                    <>
+                      <div className="expanded-section">
+                        <div className="section-label">Start Time</div>
+                        <input
+                          type="time"
+                          value={item.startTime || ''}
+                          onChange={(e) => handleAvailabilityChange(index, 'startTime', e.target.value)}
+                          className="time-input"
+                        />
+                      </div>
+
+                      <div className="expanded-section">
+                        <div className="section-label">End Time</div>
+                        <input
+                          type="time"
+                          value={item.endTime || ''}
+                          onChange={(e) => handleAvailabilityChange(index, 'endTime', e.target.value)}
+                          className="time-input"
+                        />
+                      </div>
+
+                      <div className="expanded-section">
+                        <div className="section-label">Appointment Duration (minutes)</div>
+                        <select
+                          value={item.slotDuration}
+                          onChange={(e) => handleAvailabilityChange(index, 'slotDuration', e.target.value)}
+                          className="duration-select"
+                        >
+                          <option value="15">15 minutes</option>
+                          <option value="30">30 minutes</option>
+                          <option value="45">45 minutes</option>
+                          <option value="60">1 hour</option>
+                          <option value="90">1.5 hours</option>
+                          <option value="120">2 hours</option>
+                        </select>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
             </div>
-          ))}
-        </div>
+          );
+        })}
       </div>
 
       <div className="settings-footer">
@@ -207,14 +243,11 @@ function AvailabilitySettings({ onBack }) {
       </div>
 
       <div className="info-box">
-        <h3>About Availability Settings</h3>
-        <ul>
-          <li>Check "Working" to mark a day when your salon is open</li>
-          <li>Set your operating hours (Start Time and End Time)</li>
-          <li>Choose appointment slot duration to divide your working hours into bookable slots</li>
-          <li>Customers will only see available slots on working days during your hours</li>
-          <li>Confirmed appointments will not show as available for booking</li>
-        </ul>
+        <AlertCircle size={18} />
+        <div className="info-content">
+          <h3>About Availability Settings</h3>
+          <p>Click on any day to expand and set your working hours and appointment slot duration. Customers can only book appointments during your configured working hours.</p>
+        </div>
       </div>
     </div>
   );

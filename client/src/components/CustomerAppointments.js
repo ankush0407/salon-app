@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Calendar, CheckCircle, Clock, X, AlertCircle } from 'lucide-react';
+import { Calendar, CheckCircle, Clock, X, AlertCircle, ChevronRight, MoreVertical } from 'lucide-react';
 import { appointmentsAPI } from '../services/api';
 import './CustomerAppointments.css';
 
@@ -8,6 +8,7 @@ function CustomerAppointments({ customerId }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [filter, setFilter] = useState('all'); // all, pending, confirmed, reschedule_proposed
+  const [expandedId, setExpandedId] = useState(null);
 
   const fetchAppointments = useCallback(async () => {
     try {
@@ -49,42 +50,37 @@ function CustomerAppointments({ customerId }) {
     }
   };
 
-  // Format date/time in salon's timezone (same pattern as BookingModal)
-  const formatDateTime = (dateString, salonTz) => {
-    if (!dateString) return '';
+  // Format date components
+  const formatDate = (dateString, salonTz) => {
+    if (!dateString) return { day: '', month: '', year: '', time: '' };
     const timezone = salonTz || 'UTC';
     const date = new Date(dateString);
     
-    const dateStr = date.toLocaleDateString('en-US', {
-      timeZone: timezone,
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric'
-    });
-    
-    const timeStr = date.toLocaleTimeString('en-US', {
-      timeZone: timezone,
-      hour: 'numeric',
-      minute: '2-digit',
-      hour12: true
-    });
-    
-    return `${dateStr}, ${timeStr}`;
+    return {
+      day: date.toLocaleDateString('en-US', { timeZone: timezone, day: 'numeric' }),
+      month: date.toLocaleDateString('en-US', { timeZone: timezone, month: 'short' }).toUpperCase(),
+      year: date.toLocaleDateString('en-US', { timeZone: timezone, year: 'numeric' }),
+      time: date.toLocaleTimeString('en-US', {
+        timeZone: timezone,
+        hour: 'numeric',
+        minute: '2-digit',
+        hour12: true
+      })
+    };
   };
 
-  const getStatusBadgeClass = (status) => {
-    const baseClass = 'status-badge';
+  const getStatusBadge = (status) => {
     switch (status) {
       case 'PENDING':
-        return `${baseClass} pending`;
+        return { class: 'status-pending', label: 'Pending' };
       case 'CONFIRMED':
-        return `${baseClass} confirmed`;
+        return { class: 'status-confirmed', label: 'Confirmed' };
       case 'RESCHEDULE_PROPOSED':
-        return `${baseClass} proposed`;
+        return { class: 'status-proposed', label: 'Proposed' };
       case 'CANCELLED':
-        return `${baseClass} cancelled`;
+        return { class: 'status-cancelled', label: 'Cancelled' };
       default:
-        return baseClass;
+        return { class: 'status-default', label: status };
     }
   };
 
@@ -109,14 +105,17 @@ function CustomerAppointments({ customerId }) {
         </div>
       )}
 
-      <div className="filter-tabs">
-        {['all', 'pending', 'confirmed', 'reschedule_proposed'].map(status => (
+      <div className="filter-pills">
+        {[{ value: 'all', label: 'All' }, 
+          { value: 'pending', label: 'Pending' }, 
+          { value: 'confirmed', label: 'Confirmed' }, 
+          { value: 'reschedule_proposed', label: 'Proposed' }].map(tab => (
           <button
-            key={status}
-            className={`filter-tab ${filter === status ? 'active' : ''}`}
-            onClick={() => setFilter(status)}
+            key={tab.value}
+            className={`filter-pill ${filter === tab.value ? 'active' : ''}`}
+            onClick={() => setFilter(tab.value)}
           >
-            {status === 'reschedule_proposed' ? 'Proposed' : status.charAt(0).toUpperCase() + status.slice(1)}
+            {tab.label}
           </button>
         ))}
       </div>
@@ -127,87 +126,97 @@ function CustomerAppointments({ customerId }) {
         <div className="no-appointments">
           <Clock size={48} />
           <p>No appointments {filter !== 'all' ? `with status "${filter}"` : 'yet'}</p>
-          <p className="subtitle">Book an appointment from your subscription detail view</p>
         </div>
       ) : (
-        <div className="appointments-grid">
-          {filteredAppointments.map(apt => (
-            <div key={apt.id} className="appointment-card">
-              <div className="card-header">
-                <div>
-                  <h3>{apt.salon_name}</h3>
-                  {apt.subscription_type && (
-                    <p className="subscription">{apt.subscription_type}</p>
-                  )}
-                </div>
-                <span className={getStatusBadgeClass(apt.status)}>
-                  {apt.status === 'RESCHEDULE_PROPOSED' ? 'Proposed' : apt.status}
-                </span>
-              </div>
+        <div className="appointments-list-view">
+          {filteredAppointments.map(apt => {
+            const dateInfo = formatDate(apt.requested_time, apt.salon_timezone);
+            const proposedDateInfo = apt.proposed_time ? formatDate(apt.proposed_time, apt.salon_timezone) : null;
+            const statusBadge = getStatusBadge(apt.status);
+            const isExpanded = expandedId === apt.id;
 
-              <div className="appointment-details">
-                <div className="detail-item">
-                  <span className="label">Requested Time:</span>
-                  <span className="value">{formatDateTime(apt.requested_time, apt.salon_timezone)}</span>
+            return (
+              <div key={apt.id} className={`appointment-row ${isExpanded ? 'expanded' : ''}`}>
+                <div className="row-main" onClick={() => setExpandedId(isExpanded ? null : apt.id)}>
+                  {/* Date Box */}
+                  <div className="date-box">
+                    <div className="date-day">{dateInfo.day}</div>
+                    <div className="date-month">{dateInfo.month}</div>
+                  </div>
+
+                  {/* Main Info */}
+                  <div className="row-info">
+                    <div className="info-primary">
+                      <span className="salon-name">{apt.salon_name}</span>
+                      <span className={`status-badge ${statusBadge.class}`}>{statusBadge.label}</span>
+                    </div>
+                    <div className="info-secondary">
+                      <span className="service-name">{apt.subscription_type || 'Appointment'}</span>
+                      <span className="dot">•</span>
+                      <span className="appointment-time">{dateInfo.time}</span>
+                    </div>
+                  </div>
+
+                  {/* Chevron */}
+                  <div className="row-action">
+                    <ChevronRight className={`chevron-icon ${isExpanded ? 'rotated' : ''}`} size={20} />
+                  </div>
                 </div>
 
-                {apt.proposed_time && (
-                  <div className="detail-item">
-                    <span className="label">Proposed Time:</span>
-                    <span className="value proposed">{formatDateTime(apt.proposed_time, apt.salon_timezone)}</span>
+                {/* Expanded Details */}
+                {isExpanded && (
+                  <div className="row-expanded">
+                    {proposedDateInfo && (
+                      <div className="expanded-section">
+                        <div className="section-label">Proposed New Time</div>
+                        <div className="section-value proposed-time">
+                          {proposedDateInfo.month} {proposedDateInfo.day}, {proposedDateInfo.year} at {proposedDateInfo.time}
+                        </div>
+                      </div>
+                    )}
+
+                    {apt.notes && (
+                      <div className="expanded-section">
+                        <div className="section-label">Notes</div>
+                        <div className="section-value">{apt.notes}</div>
+                      </div>
+                    )}
+
+                    <div className="expanded-actions">
+                      {apt.status === 'RESCHEDULE_PROPOSED' && (
+                        <>
+                          <button
+                            className="action-btn btn-accept"
+                            onClick={(e) => { e.stopPropagation(); handleAcceptProposal(apt.id); }}
+                          >
+                            <CheckCircle size={16} />
+                            Accept New Time
+                          </button>
+                          <button
+                            className="action-btn btn-cancel"
+                            onClick={(e) => { e.stopPropagation(); handleCancel(apt.id); }}
+                          >
+                            <X size={16} />
+                            Decline
+                          </button>
+                        </>
+                      )}
+
+                      {(apt.status === 'PENDING' || apt.status === 'CONFIRMED') && (
+                        <button
+                          className="action-btn btn-cancel"
+                          onClick={(e) => { e.stopPropagation(); handleCancel(apt.id); }}
+                        >
+                          <X size={16} />
+                          Cancel Appointment
+                        </button>
+                      )}
+                    </div>
                   </div>
                 )}
-
-                {apt.status === 'CONFIRMED' && (
-                  <div className="confirmed-tag">
-                    <CheckCircle size={16} />
-                    Confirmed
-                  </div>
-                )}
               </div>
-
-              {apt.notes && (
-                <div className="appointment-notes">
-                  <strong>Your Notes:</strong> {apt.notes}
-                </div>
-              )}
-
-              <div className="card-actions">
-                {apt.status === 'RESCHEDULE_PROPOSED' && (
-                  <>
-                    <button
-                      className="action-btn accept-btn"
-                      onClick={() => handleAcceptProposal(apt.id)}
-                    >
-                      <CheckCircle size={16} />
-                      Accept New Time
-                    </button>
-                    <button
-                      className="action-btn cancel-btn"
-                      onClick={() => handleCancel(apt.id)}
-                    >
-                      <X size={16} />
-                      Decline
-                    </button>
-                  </>
-                )}
-
-                {(apt.status === 'PENDING' || apt.status === 'CONFIRMED') && (
-                  <button
-                    className="action-btn cancel-btn"
-                    onClick={() => handleCancel(apt.id)}
-                  >
-                    <X size={16} />
-                    Cancel Appointment
-                  </button>
-                )}
-              </div>
-
-              <div className="card-footer">
-                <small>Created {new Date(apt.created_at).toLocaleDateString()}</small>
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
